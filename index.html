@@ -34,6 +34,7 @@
 .message.pending{border-style:dashed}.message.pending p{margin-top:4px;color:var(--muted)}.message.failed{border-color:#86523f}
 .review-answer{max-width:none;margin-top:12px}
 .trust{margin-top:12px;line-height:1.6}
+.obs-link{color:inherit;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
 .bot.inactive{opacity:.6}.bot .thread-select{flex:1 1 180px;min-width:0;max-width:100%}.note-suggestion pre{white-space:pre-wrap}
 .state-returned{color:#a9d8b2}.state-blocked,.state-failed,.state-stale{color:#f0b3a1}.state-running{color:var(--accent)}
 .stat{font-size:30px;font-weight:600;line-height:1.2;margin:8px 0 4px}
@@ -259,6 +260,8 @@ body.editing-home .mobile-nav{opacity:.35;pointer-events:none}
 .actor-you .badge{color:var(--accent)}.actor-mac-worker .badge{color:#a9d8b2}.actor-clock .badge{color:#9fc3d9}
 @media(max-width:700px){.audit-row{grid-template-columns:auto 1fr;row-gap:4px}.audit-what{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.stuck-badge{animation:none}}
+.pins{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:6px}.pin{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 6px 8px 12px;border:1px solid var(--line);border-radius:12px;background:#0e261b;font-size:14px;overflow-wrap:anywhere}
+.pin-add{margin-top:12px;gap:8px}.pin-add input{flex:1;min-width:0}
 </style>
 </head>
 <body>
@@ -421,11 +424,13 @@ async function load(){
   ]);
   // Quick actions and goals arrive with the Home features update; until then those widgets explain that.
   const soft=q=>http(q).catch(err=>{if(err.signedOut)throw err;return null});
-  const [quick,goals,milestones]=await Promise.all([
+  const [quick,goals,milestones,pinned,learnings]=await Promise.all([
    soft('/rest/v1/ai_os_quick_actions?select=id,label,request,project,template,position&order=position.asc,created_at.asc'),
    soft('/rest/v1/ai_os_project_goals?select=project,goal,due_on,updated_at'),
-   soft('/rest/v1/ai_os_goal_milestones?select=id,project,title,due_on,done_at,position&order=position.asc,created_at.asc')]);
-  Object.assign(state,{quick,goals,milestones});
+   soft('/rest/v1/ai_os_goal_milestones?select=id,project,title,due_on,done_at,position&order=position.asc,created_at.asc'),
+   soft('/rest/v1/ai_os_pinned_facts?select=id,fact,position,updated_at&order=position.asc,updated_at.asc'),
+   soft('/rest/v1/ai_os_learnings?select=id,run_id,task_id,kind,title,body,keywords,state,path,created_at&order=created_at.desc&limit=50')]);
+  Object.assign(state,{quick,goals,milestones,pinned,learnings});
   if(view==='audit')loadAudit();
   Object.assign(state,{status,tasks,approvals,runs,bots,assignments,notes,routines,week,summaries,loadedAt:new Date().toISOString(),error:''});
  }catch(err){if(err.signedOut)return;state.error=err.message}
@@ -491,7 +496,7 @@ function trustInfo(run){
  return {label,tone,detail:detail+extra,count:t.total?t.verified+' of '+t.total+' quotes found':'no citations'};
 }
 function trustLine(run){const i=trustInfo(run);if(!i)return '';
- return el('p',{class:'small trust'},badge(i.label,i.tone),' '+i.count+'. '+i.detail+(run.history_path?' File: '+(run.knowledge_path||run.history_path):''))}
+ return el('p',{class:'small trust'},badge(i.label,i.tone),' '+i.count+'. '+i.detail+(run.history_path?' File: ':''),run.history_path?obsLink(run.knowledge_path||run.history_path):'')}
 const knowledgePending=()=>(state.status&&state.status.knowledge_pending)||[];
 const decideKnowledge=(runId,promote)=>rpc('ai_os_knowledge_decide',{p_run_id:runId,p_promote:promote});
 function knowledgeButtons(runId){
@@ -501,7 +506,13 @@ function knowledgeButtons(runId){
 const needsApproval=()=>state.tasks.filter(t=>t.status==='queued'&&runnable(t)&&info(t).needs);
 const toReview=()=>state.tasks.filter(t=>t.status==='awaiting_review');
 const notesPending=()=>state.notes.filter(n=>n.state==='pending');
-const waitingCount=()=>needsApproval().length+knowledgePending().length+notesPending().length;
+const learningsPending=()=>(state.learnings||[]).filter(n=>n.state==='pending');
+const waitingCount=()=>needsApproval().length+knowledgePending().length+notesPending().length+learningsPending().length;
+// Opens a vault file in Obsidian (the vault the Mac worker reads).
+const VAULT_NAME='Second Brain';
+const obsidianUrl=path=>'obsidian://open?vault='+encodeURIComponent(VAULT_NAME)+'&file='+encodeURIComponent(String(path).replace(/\.md$/i,''));
+const obsLink=(path,label)=>el('a',{class:'obs-link',href:obsidianUrl(path),title:'Open '+path+' in Obsidian'},label||path);
+const obsLinks=paths=>paths.filter(Boolean).flatMap((p,i)=>i?[' and ',obsLink(p)]:[obsLink(p)]);
 // Bots: a manual label for now. Nothing here sends anything to Grok.
 const botFor=t=>{const a=state.assignments.find(x=>x.task_id===t.id);return a?state.bots.find(b=>b.id===a.bot_id):null};
 const tasksFor=b=>state.assignments.filter(a=>a.bot_id===b.id).map(a=>taskById(a.task_id)).filter(Boolean);
@@ -630,7 +641,7 @@ function taskDetails(t){
  if(runs.length){body.push(el('h3',{},'Runs'));
   for(const r of runs)body.push(el('div',{class:'list-row'},el('div',{},el('strong',{class:'state-'+r.state},r.state),
    el('p',{},['version '+r.task_version,r.authorized_by==='rule'?'by rule':'by approval',fmtWhen(r.claimed_at),r.calls_used!=null?plural(r.calls_used,'call'):'',r.model||''].filter(Boolean).join(' · ')),
-   r.error?el('p',{},r.error):'',r.history_path?el('p',{},'Saved to '+[r.history_path,r.knowledge_path].filter(Boolean).join(' and ')):'')))}
+   r.error?el('p',{},r.error):'',r.history_path?el('p',{},'Saved to ',...obsLinks([r.history_path,r.knowledge_path])):'')))}
  body.push(el('div',{class:'row wrap',style:'margin-top:16px'},taskActions(t)));
  openDialog(t.title,body);
 }
@@ -919,6 +930,7 @@ function activity(){
   if(r.finished_at)ev.push([r.finished_at,r.state==='returned'?'run':'fail',r.state==='returned'?'Elliot answered':'Run '+r.state,t.title,t]);
   else if(r.claimed_at)ev.push([r.claimed_at,'running','Elliot started',t.title,t])}
  for(const n of state.notes)ev.push([n.created_at,'note','Note suggested',n.title,taskById(n.task_id)]);
+ for(const n of state.learnings||[])ev.push([n.created_at,'note',n.kind==='skill'?'Skill suggested':'Memory suggested',n.title,taskById(n.task_id)]);
  return ev.filter(e=>e[0]).sort((a,b)=>new Date(b[0])-new Date(a[0])).slice(0,8);
 }
 function widgetActivity(){
@@ -990,6 +1002,7 @@ const WIDGETS={
  stats:{title:'At a glance',size:'full',render:tiles},
  approvals:{title:'Approvals',size:'normal',sizes:['normal','wide'],render:panel(widgetApprovals)},
  quick:{title:'Quick actions',size:'normal',sizes:['normal','wide'],render:panel(widgetQuick)},
+ pinned:{title:'Pinned facts',size:'normal',sizes:['normal','wide'],render:panel(widgetPinned)},
  team:{title:'Your team',size:'wide',sizes:['normal','wide','full'],render:botLineup},
  projects:{title:'Projects',size:'wide',sizes:['wide','full'],render:projectsWidget},
  next:{title:'Up next',size:'normal',sizes:['normal','wide'],render:panel(widgetNext)},
@@ -1111,10 +1124,22 @@ function noteItem(n){
    el('button',{class:'primary',onclick:e=>act(e.currentTarget,()=>rpc('ai_os_note_decide',{p_id:n.id,p_approve:true}),'Approved. The Mac saves it to AI/Notes next time it checks in.')},'Save to AI notes'),
    el('button',{onclick:e=>act(e.currentTarget,()=>rpc('ai_os_note_decide',{p_id:n.id,p_approve:false}),'Not saved.')},'Don\'t save')));
 }
+// A skill (a saved method for similar tasks) or a memory line a run suggested. Kept only if approved.
+function learningItem(n){
+ const t=taskById(n.task_id),skill=n.kind==='skill';
+ return el('div',{class:'approval-item note-suggestion'},el('div',{class:'row between wrap'},el('strong',{},(skill?'Keep skill? ':'Remember this? ')+n.title),badge(skill?'Skill':'Memory')),
+  el('p',{class:'muted small'},'Suggested '+fmtWhen(n.created_at)+(t?' while working on "'+t.title+'"':'')+'. '+
+   (skill?'Saved to AI/Skills and used on similar tasks only if you approve.':'Added to AI/Memory.md, which every run reads, only if you approve.')),
+  skill?el('details',{},el('summary',{},'Read the steps'),el('pre',{},n.body),
+   n.keywords&&n.keywords.length?el('p',{class:'muted small'},'Used for tasks about: '+n.keywords.join(', ')):''):el('p',{class:'small'},n.body),
+  el('div',{class:'row wrap'},
+   el('button',{class:'primary',onclick:e=>act(e.currentTarget,()=>rpc('ai_os_learning_decide',{p_id:n.id,p_approve:true}),skill?'Kept. The Mac saves it to AI/Skills next time it checks in.':'Approved. The Mac adds it to AI/Memory.md next time it checks in.')},skill?'Keep skill':'Remember'),
+   el('button',{onclick:e=>act(e.currentTarget,()=>rpc('ai_os_learning_decide',{p_id:n.id,p_approve:false}),'Not kept.')},'Don\'t keep')));
+}
 function approvalList(){
- const items=needsApproval(),decisions=knowledgePending(),notes=notesPending();
- if(!items.length&&!decisions.length&&!notes.length)return [el('p',{class:'empty'},'Nothing is waiting for your approval.')];
- return [...decisions.map(knowledgeItem),...notes.map(noteItem),...items.map(t=>{const tp=state.templates[t.template]||{},i=info(t);
+ const items=needsApproval(),decisions=knowledgePending(),notes=notesPending(),learned=learningsPending();
+ if(!items.length&&!decisions.length&&!notes.length&&!learned.length)return [el('p',{class:'empty'},'Nothing is waiting for your approval.')];
+ return [...decisions.map(knowledgeItem),...notes.map(noteItem),...learned.map(learningItem),...items.map(t=>{const tp=state.templates[t.template]||{},i=info(t);
   return el('div',{class:'approval-item'},el('div',{class:'row between wrap'},el('strong',{},t.title),badge(i.label)),
    el('p',{class:'muted small'},t.project+' · '+(TEMPLATE_LABEL[t.template]||t.template)+' · version '+t.version),
    el('details',{},el('summary',{},'Review details'),el('dl',{class:'scope'},
@@ -1377,6 +1402,24 @@ function quickDialog(){
   el('div',{class:'row wrap form-pair'},el('label',{},el('span',{},'Project'),f.project),el('label',{},el('span',{},'Template'),f.template)),
   err,el('button',{class:'primary',type:'submit'},'Add'));
  openDialog('Quick actions',[el('p',{class:'muted small'},'Each button sends a read-only request to Elliot. It still needs your approval or a standing rule to run.'),list,form]);
+}
+
+// Pinned facts: short facts Elliot is given on every run. The Mac copies them to AI/Pinned facts.md.
+function widgetPinned(){
+ if(!state.pinned)return ['Pinned facts',el('p',{class:'muted small'},'Pinned facts arrive with the next database update.'),'pinned-widget'];
+ const input=el('input',{id:'pin-input',maxlength:'280',placeholder:'Add a fact Elliot should always know','aria-label':'New pinned fact'});
+ const add=async btn=>{const fact=input.value.trim();if(!fact)return input.focus();
+  await act(btn,()=>http('/rest/v1/ai_os_pinned_facts',{method:'POST',prefer:'return=minimal',body:{owner_user_id:session.user.id,fact,position:Math.min(49,state.pinned.length)}}),'Pinned. Elliot gets it on the next run.');
+  const i=$('pin-input');i&&i.focus()};
+ input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();add($('pin-add'))}});
+ return ['Pinned facts',el('div',{},
+  state.pinned.length?el('ul',{class:'pins'},state.pinned.map(f=>el('li',{class:'pin'},el('span',{},f.fact),
+   el('button',{class:'ghost small-btn','aria-label':'Unpin '+f.fact,onclick:e=>act(e.currentTarget,()=>http('/rest/v1/ai_os_pinned_facts?id=eq.'+f.id,{method:'DELETE'}),'Unpinned.')},icon('i-close'))))):
+   el('p',{class:'muted small'},'Nothing pinned yet. Add facts like your launch date or how you like answers written.'),
+  state.pinned.length<20?el('div',{class:'row pin-add'},input,el('button',{class:'primary circle',id:'pin-add','aria-label':'Pin it',onclick:e=>add(e.currentTarget)},icon('i-plus'))):
+   el('p',{class:'micro'},'20 is the limit, so every run stays short.'),
+  el('p',{class:'micro'},'Stored in your vault as ',obsLink('AI/Pinned facts.md'),'. Given to every run as background, never as instructions. ',
+   'For longer preferences, edit ',obsLink('AI/Memory.md'),'.')),'pinned-widget'];
 }
 
 // Project goals: one goal per project with an optional date, plus milestones that fill its bar.
