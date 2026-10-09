@@ -6,12 +6,13 @@
 <meta name="theme-color" content="#071611">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src https://fchitebejupdcpdartrk.supabase.co; base-uri 'none'; form-action 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src https://fchitebejupdcpdartrk.supabase.co; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none';">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Agent OS">
 <link rel="icon" type="image/png" href="icons/favicon.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <title>Agent OS</title>
 <style>
 /* Forest Studio (docs/design in the agent-os repo). Base styles come from the approved prototype. */
@@ -54,8 +55,210 @@ dialog pre{font-family:inherit}
 .elliot .conversation{height:max(320px,calc(100dvh - 400px))}
 .focus-mode .elliot .conversation{height:calc(100dvh - 330px)}
 .elliot-head>.row{min-width:0}.elliot-head{flex-wrap:nowrap;align-items:flex-start}
+/* Home board */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes ringIn{from{stroke-dashoffset:var(--full)}}
+@keyframes breathe{0%,100%{box-shadow:0 0 14px #98c7a130,0 0 0 0 #9fd3a944}50%{box-shadow:0 0 30px #98c7a160,0 0 0 10px #9fd3a900}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 currentColor}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.enter .rise{animation:rise .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(min(var(--i,0),14) * 45ms)}
+.enter .ring-fill{animation:ringIn 1.1s cubic-bezier(.2,.8,.2,1) both .15s}
+.ring-fill{transition:stroke-dashoffset .6s}
+.dot.pulse{color:#f2cd8566;animation:pulse 1.8s infinite}.badge.ok .dot.pulse{color:#9fd3a955}
+.button-link{color:var(--accent);text-decoration:none;font-size:14px;display:inline-flex;align-items:center;min-height:44px}.button-link:hover{text-decoration:underline}
+.hero{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;padding:28px 32px;margin-bottom:20px;position:relative;overflow:hidden}
+.hero:before{content:'';position:absolute;inset:-40% -10% auto auto;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,#d6be7a1c,transparent 65%);pointer-events:none}
+.hero-main{display:grid;gap:14px;min-width:0}.hero-top{gap:16px}.hero h1{font-size:32px}
+.hero-orb{width:58px;height:58px;position:relative}.hero-orb.live{animation:breathe 4s ease-in-out infinite}
+.hero-orb.busy:before{content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent);border-right-color:#d6be7a55;animation:spin 1.4s linear infinite}
+.hero-orb.sleep{filter:saturate(.4) brightness(.8)}
+.hero-line{font-size:18px;color:var(--text);max-width:640px}
+.quick-ask{display:flex;align-items:center;gap:8px;background:#0b1f17cc;border:1px solid #66866c;border-radius:20px;padding:6px 6px 6px 16px;max-width:720px;transition:border-color .2s,box-shadow .2s}
+.quick-ask:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px #d6be7a22}
+.quick-ask>.icon{color:var(--muted)}.quick-ask input{border:0;background:transparent;min-width:0;flex:1;padding:10px 4px;outline:none}
+.quick-ask input:focus-visible{outline:none}.quick-ask .thread-select{max-width:130px;background:#10251c}
+.hero-links{gap:16px}.hero-links .micro{margin:0}
+.hero-gauge{display:grid;justify-items:center;gap:6px;text-align:center}
+.gauge-ring{position:relative;width:118px;height:118px}.gauge-text{position:absolute;inset:0;display:grid;place-content:center;line-height:1.1}
+.gauge-text strong{font-size:30px;font-weight:650}.gauge-text span{font-size:12px;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.tile{position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:14px;justify-items:start;align-items:center;text-align:left;
+ padding:16px 18px;border-radius:20px;background:var(--surface);min-height:84px;overflow:hidden;transition:transform .18s,border-color .18s,background .18s}
+.tile:hover{transform:translateY(-2px);background:var(--surface);border-color:#63836b}.tile:active{transform:translateY(0) scale(.98)}
+.tile-icon{grid-row:1/3;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#1b3a2b;color:var(--muted)}
+.tile-num{font-size:28px;font-weight:650;line-height:1.1;font-variant-numeric:tabular-nums}.tile-label{font-size:13px;color:var(--muted)}
+.tile.hot{border-color:#8a7440;background:linear-gradient(135deg,#2c2a16,#10251c 70%)}.tile.hot .tile-icon{background:var(--accent);color:var(--ink)}
+.glow{--mx:50%;--my:-200px}
+.glow:after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .25s;
+ background:radial-gradient(260px circle at var(--mx) var(--my),#d6be7a17,transparent 70%)}
+.glow:hover:after{opacity:1}
+.board{display:grid;gap:20px;align-content:start;min-width:0}
+.board-head{margin-top:4px}.board-head h2{font-size:22px}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap}
+.chip.filter{gap:8px;padding:4px 12px;min-height:36px;font-size:13px;color:var(--muted)}
+.chip.filter.active{background:var(--accent);color:var(--ink);border-color:var(--accent);font-weight:600}
+.chip-count{font-size:11px;background:#ffffff14;border-radius:99px;padding:0 7px}.chip.filter.active .chip-count{background:#17291f22}
+.project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;align-items:start}
+.project-card{position:relative;padding:20px;border-radius:22px;background:linear-gradient(180deg,color-mix(in srgb,var(--hue) 9%,var(--surface)),var(--surface) 120px);
+ border:1px solid var(--line);border-top:3px solid var(--hue);transition:transform .18s,border-color .18s,box-shadow .18s;display:grid;gap:14px}
+.project-card:hover{box-shadow:0 14px 34px #0006;border-color:color-mix(in srgb,var(--hue) 45%,var(--line));border-top-color:var(--hue)}
+.pc-head{display:flex;align-items:center;gap:14px}.pc-title{flex:1;min-width:0}.pc-title h2{font-size:19px}.pc-title p{margin-top:2px}
+.pc-ring{position:relative;width:52px;height:52px;flex:none}.pc-pct{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:600}
+.lane-bar{display:flex;gap:3px;height:8px;border-radius:8px;overflow:hidden}.lane-bar.empty-bar{background:#254636}
+.seg{min-width:8px;border-radius:3px}
+.lane-needs{--lane:#e7c46f}.lane-review{--lane:#f4eddb}.lane-running{--lane:#9fd3a9}.lane-bot{--lane:#8fb4e3}.lane-queued{--lane:#4f6f5c}
+.seg{background:var(--lane)}.seg.lane-running{animation:pulse 1.8s infinite;color:#9fd3a955}
+.board-list{display:grid;gap:4px}
+.board-row{display:flex;align-items:flex-start;gap:12px;justify-content:flex-start;text-align:left;border:1px solid transparent;border-radius:14px;padding:9px 10px;width:100%;min-height:52px}
+.board-row:hover{background:#ffffff08;border-color:var(--line)}
+.lane-dot{width:9px;height:9px;border-radius:50%;background:var(--lane);margin-top:7px;flex:none}
+.board-row.lane-running .lane-dot{animation:pulse 1.8s infinite;color:#9fd3a955}
+.board-text{display:grid;min-width:0}.board-title{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board-meta{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.pc-foot .row{gap:2px}
+.small-btn{min-height:36px;padding:4px 10px;font-size:13px;border-radius:12px}.small-btn .icon{width:16px;height:16px}
+.pc-empty{padding:4px 0}
+.quiet{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.quiet .chip{gap:8px;padding:4px 12px}
+.hue-dot{width:8px;height:8px;border-radius:50%;background:var(--hue)}
+.lineup{padding:20px 22px}
+.lineup-row{display:flex;gap:6px;overflow-x:auto;padding:14px 2px 4px;scrollbar-width:thin;scroll-snap-type:x proximity}
+.lineup-bot{flex-direction:column;border:0;border-radius:16px;padding:8px 6px;min-width:84px;max-width:84px;gap:6px;scroll-snap-align:start;transition:transform .18s,background .18s}
+.lineup-bot:hover{transform:translateY(-3px);background:#ffffff0a}
+.lineup-name{font-size:13px;font-weight:600}.lineup-role{font-size:11px;color:var(--muted);line-height:1.25;max-height:2.5em;overflow:hidden;text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.avatar-ring{--s:52px;position:relative;width:var(--s);height:var(--s);border-radius:50%;padding:3px;flex:none;background:#2a4636;display:inline-block}
+.avatar-ring.busy{background:conic-gradient(var(--accent) var(--p),#2a4636 0)}
+.bot-face{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;font-size:calc(var(--s) * .3);font-weight:650;color:var(--text);border:2px solid var(--bg)}
+.bot-count{position:absolute;right:-3px;top:-3px;min-width:20px;height:20px;border-radius:10px;background:var(--accent);color:var(--ink);font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px;border:2px solid var(--bg)}
+.feed{list-style:none;margin:12px 0 0;padding:0;position:relative}
+.feed:before{content:'';position:absolute;left:5px;top:10px;bottom:10px;width:2px;background:var(--line)}
+.feed-item{display:flex;gap:12px;align-items:flex-start;padding:8px 0;position:relative}
+.feed-dot{width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid #6f8f78;margin-top:5px;flex:none;z-index:1}
+.feed-done .feed-dot,.feed-run .feed-dot{border-color:#9fd3a9;background:#2f5a3e}.feed-fail .feed-dot{border-color:#e7a38f}.feed-note .feed-dot{border-color:var(--accent)}
+.feed-running .feed-dot{border-color:#9fd3a9;animation:pulse 1.8s infinite;color:#9fd3a955}
+.feed-body{flex:1;min-width:0}.feed-body p{font-size:13px;overflow-wrap:anywhere}.feed-body .micro{margin-top:2px}
+.up-next{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px}
+.up-next li{display:flex;align-items:center;gap:12px}.up-next li>div{flex:1;min-width:0}
+.when{font-size:12px;color:var(--accent);white-space:nowrap}.small-orb{width:36px;height:36px}
+.routines-off{margin-top:12px}.routines-off summary{cursor:pointer;font-size:13px;color:var(--muted);min-height:36px;display:flex;align-items:center}
+.routine.off strong{color:var(--muted)}
+.switch{position:relative;width:52px;min-width:52px;height:30px;min-height:30px;border-radius:99px;padding:0;background:#254636;border-color:#3e604c;transition:background .2s}
+.switch .knob{position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:var(--muted);transition:transform .22s cubic-bezier(.3,1.4,.5,1),background .2s}
+.switch.on{background:var(--accent);border-color:var(--accent)}.switch.on .knob{transform:translateX(22px);background:var(--ink)}
+.switch:hover{background:#2e5440}.switch.on:hover{background:#e3ce98}
+.routines-panel{margin-top:24px}
+.day-picker{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}.day-picker .day{display:block;margin:0}
+.day input{position:absolute;opacity:0;width:1px;height:1px}.day span{display:grid;place-items:center;min-width:44px;min-height:40px;border:1px solid var(--line);border-radius:12px;font-size:13px;cursor:pointer}
+.day input:checked+span{background:var(--accent);color:var(--ink);border-color:var(--accent);font-weight:600}.day input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.summary-table{width:100%;border-collapse:collapse;font-size:13px}.summary-table th,.summary-table td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}.summary-table th{color:var(--muted);font-weight:500}
+.chat-page .elliot .conversation{height:max(360px,calc(100dvh - 330px))}
+.flat .tile.hot{background:var(--surface)}.flat .hero:before,.flat .glow:after{display:none}.flat .project-card{background:var(--surface)}
+@media(max-width:1050px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.hero{grid-template-columns:1fr;padding:20px;gap:18px}.hero h1{font-size:25px}.hero-orb{width:46px;height:46px}.hero-line{font-size:16px}
+ .hero-gauge{grid-template-columns:auto 1fr;justify-items:start;text-align:left;column-gap:14px;align-items:center}.hero-gauge .gauge-ring{grid-row:1/3;width:84px;height:84px}
+ .hero-gauge .ring{width:84px;height:84px}.gauge-text strong{font-size:22px}
+ .quick-ask{flex-wrap:wrap;padding:6px 6px 6px 14px}.quick-ask input{flex:1 1 60%}.quick-ask .thread-select{max-width:none;flex:1}
+ .tiles{gap:10px;margin-bottom:18px}.tile{padding:12px;min-height:72px;column-gap:10px}.tile-icon{width:34px;height:34px}.tile-num{font-size:23px}.tile-label{font-size:12px}
+ .project-grid{grid-template-columns:1fr}.board-head{gap:10px}.lineup{padding:16px}.hero-links .micro{display:none}}
+/* Forest plus glow */
+.hold{position:relative;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.hold-label{position:relative}
+.hold-fill{position:absolute;inset:0;transform-origin:left;transform:scaleX(0);background:#ffffff40;pointer-events:none}
+.hold.holding .hold-fill{transform:scaleX(1);transition:transform var(--hold,650ms) linear}.hold.holding{transform:scale(.97)}
+.burst{position:fixed;border-radius:50%;pointer-events:none;z-index:60;box-shadow:0 0 6px currentColor}
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-60px,30px) scale(1.15)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(50px,-25px) scale(.9)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes tickOn{from{stroke:#ffffff14}}
+.hero{background:linear-gradient(150deg,#1d4a35 0%,#0f2a1f 55%,#0b1d16 100%);border-color:#4f7c60;box-shadow:0 20px 60px #00000070,inset 0 1px 0 #ffffff14}
+.hero:before{display:none}.hero>*:not(.blob){position:relative;z-index:1}
+.blob{position:absolute;border-radius:50%;filter:blur(50px);pointer-events:none;opacity:.55}
+.blob.b1{width:340px;height:340px;right:-60px;top:-120px;background:radial-gradient(circle,#d6be7a,#d6be7a00 70%);animation:drift1 16s ease-in-out infinite}
+.blob.b2{width:300px;height:300px;left:30%;bottom:-170px;background:radial-gradient(circle,#4fb39a,#4fb39a00 70%);animation:drift2 19s ease-in-out infinite}
+.gauge-ring{width:150px;height:150px}.gauge-text{gap:6px;justify-items:center}.gauge-text span{font-size:11px;letter-spacing:.4px}
+.dial .tick{stroke:#ffffff1c}.dial .tick.on{stroke:var(--accent);filter:drop-shadow(0 0 3px #d6be7a88)}.dial .tick.on.full{stroke:#e7a38f}
+.enter .dial .tick.on{animation:tickOn .4s both;animation-delay:var(--d)}
+.dot-num{display:inline-flex;line-height:0}.dots .lit{filter:drop-shadow(0 0 2px #d6be7a99)}
+.tile{background:linear-gradient(160deg,#173326cc,#0e221acc);backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 #ffffff0d}
+.tile.hot{background:linear-gradient(150deg,#5a4a1d,#2a2614 55%,#10251c);border-color:#a88d4b;box-shadow:0 10px 30px #d6be7a1f,inset 0 1px 0 #ffffff1a}
+.project-card{overflow:hidden;background:linear-gradient(165deg,color-mix(in srgb,var(--hue) 22%,#10251c) 0%,#10251c 55%);border:1px solid color-mix(in srgb,var(--hue) 30%,var(--line));border-top-width:1px;
+ box-shadow:inset 0 1px 0 #ffffff12}
+.project-card:before{content:'';position:absolute;width:220px;height:220px;right:-70px;top:-90px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--hue) 55%,transparent),transparent 70%);filter:blur(30px);opacity:.6;pointer-events:none}
+.project-card>*{position:relative}
+.project-card:hover{box-shadow:0 18px 40px #0007,0 0 0 1px color-mix(in srgb,var(--hue) 40%,transparent),inset 0 1px 0 #ffffff12}
+.pc-emoji{font-size:22px;line-height:1}
+.lineup{background:linear-gradient(160deg,#162f24,#0e211a);overflow:hidden}
+.avatar-ring{background:hsl(var(--bh) 30% 30%);box-shadow:0 0 18px hsl(var(--bh) 60% 50% / .25)}
+.avatar-ring.busy{background:conic-gradient(hsl(var(--bh) 70% 65%) var(--p),hsl(var(--bh) 25% 25%) 0);box-shadow:0 0 22px hsl(var(--bh) 70% 55% / .45)}
+.bot-face{background:radial-gradient(circle at 35% 25%,hsl(var(--bh) 45% 42%),hsl(var(--bh) 40% 18%) 75%)}
+.lineup-bot .avatar-ring{animation:float 5s ease-in-out infinite}.lineup-bot:nth-child(3n+2) .avatar-ring{animation-delay:-1.6s}.lineup-bot:nth-child(3n) .avatar-ring{animation-delay:-3.2s}
+.heat-wrap{margin:14px 0 4px}
+.heat-grid{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;grid-auto-columns:max-content;gap:6px;justify-content:start}
+.heat{width:14px;height:14px;border-radius:50%;display:inline-block;background:#ffffff12}
+.heat.l1{background:#3f7a58}.heat.l2{background:#7fc8a0;box-shadow:0 0 6px #7fc8a066}.heat.l3{background:var(--accent);box-shadow:0 0 8px #d6be7a88}
+.heat.future{background:transparent;border:1px dashed #ffffff18}.heat.today{outline:2px solid var(--text);outline-offset:1px}
+.heat-legend{display:flex;justify-content:space-between;align-items:center;gap:8px}.heat-legend .heat{width:9px;height:9px}
+.circle-link{display:none}
+.flat .blob,.flat .project-card:before{display:none}.flat .tile,.flat .lineup{background:var(--surface);backdrop-filter:none}
+@media(max-width:700px){
+ .gauge-ring{width:96px;height:96px}.hero-gauge .dial{width:96px;height:96px}.hero-gauge .gauge-ring{width:96px;height:96px}
+ .hero-gauge .dot-num svg{width:auto;height:22px}
+ .circle-link{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);color:var(--text)}
+ .mobile-nav{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));border:1px solid #ffffff1a;border-radius:28px;background:#0b1d16e6;backdrop-filter:blur(16px);
+  padding:6px;box-shadow:0 12px 40px #000a;justify-content:space-between;align-items:center}
+ .mobile-nav a{min-width:0;flex:1;font-size:10px}.mobile-nav a[href="#control"]{display:none}
+ .mobile-nav a[href="#home"]{order:1}.mobile-nav a[href="#tasks"]{order:2}.mobile-nav a[href="#chat"]{order:3}.mobile-nav a[href="#review"]{order:4}.mobile-nav a[href="#bots"]{order:5}
+ .mobile-nav a[href="#chat"]{flex:none;width:58px;height:58px;min-height:58px;border-radius:50%;margin:-22px 4px 0;background:radial-gradient(circle at 35% 25%,#f0dca0,#d6be7a 45%,#9c8442);color:var(--ink);
+  box-shadow:0 8px 24px #d6be7a55,0 0 0 4px #0b1d16}
+ .mobile-nav a[href="#chat"] span:not(.count){display:none}.mobile-nav a[href="#chat"] .icon{width:24px;height:24px}
+ .mobile-nav a[href="#chat"].active{background:radial-gradient(circle at 35% 25%,#fff0c4,#e3ce98 45%,#b39a55);color:var(--ink)}
+ .workspace{padding-bottom:calc(120px + env(safe-area-inset-bottom))}.toast{bottom:calc(100px + env(safe-area-inset-bottom))}
+}
+/* Home widgets: a grid you can rearrange */
+@keyframes wiggleA{0%,100%{transform:scale(.985) rotate(-.3deg)}50%{transform:scale(.985) rotate(.3deg)}}
+@keyframes wiggleB{0%,100%{transform:scale(.985) rotate(.3deg)}50%{transform:scale(.985) rotate(-.3deg)}}
+.w-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;grid-auto-flow:row dense;align-items:start}
+.w{min-width:0;position:relative;border-radius:24px}.w-full{grid-column:1/-1}.w-wide{grid-column:span 2}
+.w .hero,.w .tiles,.w .widget{margin:0}.w .projects-w{display:grid;gap:16px}
+.w-bar{display:flex;align-items:center;gap:8px;padding:6px 6px 10px}
+.w-name{font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.w-grip{width:44px;min-height:40px;padding:0;border-radius:12px;cursor:grab;touch-action:none;background:#d6be7a1f;border-color:#d6be7a55}
+.w-grip:active{cursor:grabbing}.grip-dots{width:14px;height:18px;background:radial-gradient(circle,var(--accent) 1.6px,transparent 2px) 0 0/7px 6px}
+.w-tools{display:flex;gap:4px}.w-tool{min-height:36px;padding:4px 10px;font-size:12px;border-radius:10px}
+.w-grid.editing,body.w-dragging{-webkit-user-select:none;user-select:none}
+.w-grid.editing .w{outline:1px dashed #d6be7a66;outline-offset:6px;background:#d6be7a08}
+.w-grid.editing .w:nth-child(odd) .w-body{animation:wiggleA .5s ease-in-out infinite}.w-grid.editing .w:nth-child(even) .w-body{animation:wiggleB .5s ease-in-out infinite .1s}
+.w-grid.editing .w-body{pointer-events:none;opacity:.8;transform:scale(.985);transform-origin:top center;transition:opacity .2s,transform .2s}
+.w-grid.editing .w-body .rise{animation:none}
+.w.w-slot{animation:none!important;outline:2px dashed var(--accent);background:#d6be7a10}.w.w-slot>*{visibility:hidden}
+.w-ghost{position:fixed;z-index:70;pointer-events:none;margin:0;border-radius:24px;box-shadow:0 30px 70px #000c,0 0 0 1px #d6be7a66;animation:none!important;will-change:transform,left,top;overflow:hidden}
+.w-ghost .w-body{opacity:1;transform:none}
+.customize-bar{position:sticky;top:8px;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+ padding:12px 12px 12px 18px;margin-bottom:20px;border:1px solid #a88d4b;border-radius:20px;background:#1a2a1ef2;backdrop-filter:blur(14px);box-shadow:0 12px 30px #0008}
+.add-w{gap:6px;padding:4px 12px}.add-w .icon{width:14px;height:14px}
+.customize-foot{display:flex;justify-content:center;margin-top:20px}
+body.editing-home .mobile-nav{opacity:.35;pointer-events:none}
+@media(max-width:1050px){.w-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.w-wide{grid-column:1/-1}}
+@media(max-width:700px){.w-grid{grid-template-columns:1fr;gap:16px}.w-wide,.w-normal{grid-column:1/-1}.customize-bar{top:4px}.w-tool{padding:4px 8px}}
 @media(max-width:700px){.elliot .conversation{height:52dvh}.elliot-head .muted{font-size:13px}.composer-controls{flex-wrap:wrap}.thread-select{max-width:none;flex:1}.composer-controls>.row:first-child{flex:1 1 100%}.composer-controls>.row:last-child{margin-left:auto}
  .page-heading{flex-wrap:wrap}.scope{grid-template-columns:1fr}.scope dt{margin-top:6px}}
+/* Home features: undo toast, usage rings, quick actions, goals, stuck badges, audit log */
+.toast{display:flex;align-items:center;gap:14px}.toast-undo{background:var(--ink);color:var(--cream);border-color:var(--ink);min-height:36px;padding:4px 14px;font-weight:600;font-variant-numeric:tabular-nums}
+.usage-rings{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:10px 0 12px}.urow{display:flex;align-items:center;gap:8px;font-size:13px}.urow>span{display:grid;line-height:1.2}.urow .micro{margin:0}.urow.off{opacity:.55}
+.hero-gauge .usage-rings .ring{width:30px;height:30px}.hero-gauge .usage-rings{grid-column:1/-1;justify-self:stretch}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px}
+.quick-btn{flex-direction:column;align-items:flex-start;justify-content:flex-start;text-align:left;gap:2px;min-height:68px;padding:12px 14px;border-radius:18px;background:#0e261b}
+.quick-btn .micro{margin:0}.quick-btn:active{transform:scale(.97)}.quick-edit{align-items:center;justify-content:center;flex-direction:row;border-style:dashed;background:transparent;color:var(--muted)}
+.goal{display:grid;gap:8px;width:100%;text-align:left;justify-content:stretch;margin:12px 0 4px;padding:10px 12px;border-radius:14px;border-color:color-mix(in srgb,var(--hue,#d6be7a) 45%,var(--line));background:color-mix(in srgb,var(--hue,#d6be7a) 8%,transparent)}
+.goal-text{display:grid;gap:2px}.goal-text .micro{margin:0}.goal.late .micro{color:#f0b3a1}
+.goal-bar{display:block;height:6px;border-radius:6px;background:#254636;overflow:hidden}.goal-bar span{display:block;height:100%;background:var(--hue,#d6be7a);border-radius:6px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.goal-add{margin:10px 0 0;color:var(--muted)}.milestone .check{display:flex;gap:10px;align-items:center;margin:0}.ms-form{margin-top:12px;gap:8px}.ms-form input[type=text],.ms-form #ms-title{flex:1 1 180px;width:auto}.ms-form input[type=date]{flex:0 1 170px;width:auto}
+.stuck-badge{display:inline-block;margin-left:8px;font-size:11px;font-weight:600;color:#f2cd85;border:1px solid #86733e;border-radius:99px;padding:0 7px;box-shadow:0 0 10px #f2cd8540;animation:stuckGlow 2.4s ease-in-out infinite}
+@keyframes stuckGlow{50%{box-shadow:0 0 16px #f2cd8580}}
+.audit-tools{gap:12px;margin-bottom:16px}.audit-tools input{flex:1 1 220px;width:auto;min-height:40px}
+.audit-list{list-style:none;padding:0;margin:0}.audit-row{display:grid;grid-template-columns:110px auto 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.audit-row:last-child{border-bottom:0}.audit-when{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}.audit-what{overflow-wrap:anywhere}
+.actor-you .badge{color:var(--accent)}.actor-mac-worker .badge{color:#a9d8b2}.actor-clock .badge{color:#9fc3d9}
+@media(max-width:700px){.audit-row{grid-template-columns:auto 1fr;row-gap:4px}.audit-what{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.stuck-badge{animation:none}}
 </style>
 </head>
 <body>
@@ -89,7 +292,7 @@ dialog pre{font-family:inherit}
  <main class="workspace" id="main">
   <header class="topbar">
    <button class="search-button" id="search-button"><svg class="icon"><use href="#i-search"/></svg><span>Search tasks</span><kbd style="margin-left:auto">⌘ K</kbd></button>
-   <div class="top-actions"><button id="pause-button" hidden><svg class="icon"><use href="#i-pause"/></svg><span class="pause-label">Pause queue</span></button></div>
+   <div class="top-actions"><a class="circle-link" id="mobile-control" href="#control" aria-label="Control"><svg class="icon"><use href="#i-settings"/></svg></a><button id="pause-button" hidden><svg class="icon"><use href="#i-pause"/></svg><span class="pause-label">Pause queue</span></button></div>
   </header>
   <div id="view"></div>
  </main>
@@ -112,7 +315,7 @@ const ERROR_TEXT={model_limit:'Hit the Claude subscription limit',model_error:'T
  tool_violation:'Tried a tool it was not allowed',invalid_output:'Returned an unusable answer',authorization_lost:'Stopped because its approval ended',
  stopped:'Stopped by pause',worker_error:'The Mac worker hit an error',stale:'The worker stopped before returning'};
 const CANCELLED='Cancelled from the dashboard';
-const VIEWS=[['home','Home','i-home'],['tasks','Tasks','i-tasks'],['review','Review','i-review'],['projects','Projects','i-folder'],['bots','Bots','i-bot'],['control','Control','i-settings']];
+const VIEWS=[['home','Home','i-home'],['chat','Elliot','i-chat'],['tasks','Tasks','i-tasks'],['review','Review','i-review'],['bots','Bots','i-bot'],['control','Control','i-settings']];
 
 // ---------- small helpers ----------
 const $=id=>document.getElementById(id);
@@ -141,7 +344,17 @@ const ago=t=>{if(!t)return 'never';const s=Math.round((Date.now()-new Date(t))/1
  if(s<60)return 'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return Math.round(s/86400)+' d ago'};
 const plural=(n,w)=>n+' '+w+(n===1?'':'s');
 let toastTimer;
-function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,5000)}
+function toast(msg){const t=$('toast');clearInterval(undoTimer);t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,5000)}
+// Undo: an approval only starts a run after 10 seconds (the database enforces it), so this button can take it back first.
+let undoTimer;
+function undoToast(msg,undo){
+ const t=$('toast');clearTimeout(toastTimer);clearInterval(undoTimer);
+ let left=10;const btn=el('button',{class:'toast-undo',id:'undo'},'Undo '+left);
+ btn.onclick=async()=>{clearInterval(undoTimer);btn.disabled=true;
+  try{await undo();toast('Undone. Nothing ran.')}catch(err){if(!err.signedOut)toast('Could not undo: '+err.message)}finally{await load()}};
+ t.replaceChildren(el('span',{},msg),btn);t.hidden=false;
+ undoTimer=setInterval(()=>{left--;if(left<=0){clearInterval(undoTimer);t.hidden=true}else btn.textContent='Undo '+left},1000);
+}
 
 // ---------- session ----------
 let session=null,refreshing=null;
@@ -188,13 +401,13 @@ async function enter(){
 }
 
 // ---------- data ----------
-const state={status:null,tasks:[],approvals:[],runs:[],bots:[],assignments:[],notes:[],templates:{},loadedAt:null,error:''};
+const state={status:null,tasks:[],approvals:[],runs:[],bots:[],assignments:[],notes:[],routines:[],week:null,summaries:[],templates:{},loadedAt:null,error:''};
 let pollTimer=null;
 function startPolling(){clearInterval(pollTimer);pollTimer=setInterval(()=>{if(document.visibilityState==='visible')load()},20000)}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&session)load()});
 async function load(){
  try{
-  const [status,tasks,approvals,runs,bots,assignments,notes]=await Promise.all([
+  const [status,tasks,approvals,runs,bots,assignments,notes,routines,week,summaries]=await Promise.all([
    rpc('ai_os_worker_status'),
    http('/rest/v1/ai_os_tasks?select=id,title,project,agent,executor,template,request,context,result,status,version,created_at,updated_at,requires_approval,proposed_by_run&order=created_at.desc&limit=300'),
    http('/rest/v1/ai_os_dispatch_approvals?select=id,task_id,task_version,approved_at,expires_at,revoked_at&order=approved_at.desc,id.desc&limit=300'),
@@ -202,8 +415,19 @@ async function load(){
    http('/rest/v1/ai_os_bots?select=id,name,role,platform,external_id,notes,active,connected,created_at&order=name.asc'),
    http('/rest/v1/ai_os_bot_assignments?select=task_id,bot_id,assigned_at'),
    http('/rest/v1/ai_os_note_suggestions?select=id,run_id,task_id,title,body,sources,state,path,created_at,decided_at&order=created_at.desc&limit=100'),
+   http('/rest/v1/ai_os_routines?select=id,name,project,executor,template,bot_id,request,days,hour,minute,enabled,last_run_on,last_task_id&order=name.asc'),
+   rpc('ai_os_weekly_summary_preview'),
+   http('/rest/v1/ai_os_weekly_summaries?select=week_start,data,vault_path&order=week_start.desc&limit=12'),
   ]);
-  Object.assign(state,{status,tasks,approvals,runs,bots,assignments,notes,loadedAt:new Date().toISOString(),error:''});
+  // Quick actions and goals arrive with the Home features update; until then those widgets explain that.
+  const soft=q=>http(q).catch(err=>{if(err.signedOut)throw err;return null});
+  const [quick,goals,milestones]=await Promise.all([
+   soft('/rest/v1/ai_os_quick_actions?select=id,label,request,project,template,position&order=position.asc,created_at.asc'),
+   soft('/rest/v1/ai_os_project_goals?select=project,goal,due_on,updated_at'),
+   soft('/rest/v1/ai_os_goal_milestones?select=id,project,title,due_on,done_at,position&order=position.asc,created_at.asc')]);
+  Object.assign(state,{quick,goals,milestones});
+  if(view==='audit')loadAudit();
+  Object.assign(state,{status,tasks,approvals,runs,bots,assignments,notes,routines,week,summaries,loadedAt:new Date().toISOString(),error:''});
  }catch(err){if(err.signedOut)return;state.error=err.message}
  render();
 }
@@ -236,7 +460,7 @@ function info(t){
  // queued
  if(running)return {stage:2,label:'Running',tone:'attention',detail:'Started '+fmtWhen(running.claimed_at)+' on '+(state.status.workers[0]?state.status.workers[0].worker_id:'the Mac')+'.'};
  if(!runnable(t)){const b=botFor(t);
-  return b?{stage:0,label:'With '+b.name,tone:'',detail:'Assigned to '+b.name+'. Grok is not connected yet, so hand it over yourself and mark it done when it is handled.'}
+  return b?{stage:0,label:'With '+b.name,tone:'',detail:'Assigned to '+b.name+'. '+b.platform+' is not connected yet, so hand it over yourself and mark it done when it is handled.'}
    :{stage:0,label:'Manual handoff',tone:'',detail:t.executor+' tasks are not run by the Mac worker. Mark it done when it is handled.'}}
  const waitWorker=()=>state.status.paused?'The queue is paused, so it waits until you resume.'
   :workerOnline()?'The Mac worker will pick it up shortly.':'Approved, but the Mac worker is offline. It runs when the Mac wakes; this page cannot wake it.';
@@ -281,13 +505,23 @@ const waitingCount=()=>needsApproval().length+knowledgePending().length+notesPen
 // Bots: a manual label for now. Nothing here sends anything to Grok.
 const botFor=t=>{const a=state.assignments.find(x=>x.task_id===t.id);return a?state.bots.find(b=>b.id===a.bot_id):null};
 const tasksFor=b=>state.assignments.filter(a=>a.bot_id===b.id).map(a=>taskById(a.task_id)).filter(Boolean);
-const assignable=t=>t.executor==='Grok'||t.executor==='Manual';
+const assignable=t=>['Grok','ChatGPT','Codex','Manual'].includes(t.executor);
+const botExecutor=b=>b.platform==='ChatGPT'?'ChatGPT':b.platform==='Grok Bot'?'Grok':'Manual';
 const assignBot=(t,botId)=>rpc('ai_os_bot_assign',{p_task_id:t.id,p_bot_id:botId||null});
 
 // ---------- actions ----------
+// A small burst of gold dots from the button when an action lands.
+function burst(btn){
+ if(!btn||!btn.isConnected||matchMedia('(prefers-reduced-motion: reduce)').matches||store.get('flat',false))return;
+ const r=btn.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,cols=['#d6be7a','#9fd3a9','#f4eddb','#7fc8b5'];
+ for(let i=0;i<14;i++){const a=Math.PI*2*i/14+Math.random()*.4,d=36+Math.random()*34,size=4+Math.random()*4;
+  const p=el('span',{class:'burst',style:'left:'+cx+'px;top:'+cy+'px;width:'+size+'px;height:'+size+'px;background:'+cols[i%4]});document.body.append(p);
+  p.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},{transform:'translate(calc(-50% + '+(Math.cos(a)*d)+'px),calc(-50% + '+(Math.sin(a)*d)+'px)) scale(.3)',opacity:0}],
+   {duration:600+Math.random()*250,easing:'cubic-bezier(.2,.8,.3,1)'}).onfinish=()=>p.remove()}
+}
 async function act(btn,fn,ok){
  if(btn)btn.disabled=true;
- try{await fn();if(ok)toast(ok)}catch(err){if(!err.signedOut)toast(err.message)}
+ try{await fn();if(ok)toast(ok);burst(btn)}catch(err){if(!err.signedOut)toast(err.message)}
  finally{if(btn)btn.disabled=false;await load()}
 }
 async function setStatus(t,status,result){
@@ -298,6 +532,8 @@ async function setStatus(t,status,result){
 const approve=(t,hours)=>{const prev=lastApproval(t);
  return rpc('ai_os_dispatch_approve',{p_task_id:t.id,p_task_version:t.version,p_previous_id:prev?prev.id:null,p_hours:hours})};
 const revoke=(t,a)=>rpc('ai_os_dispatch_revoke',{p_task_id:t.id,p_approval_id:a.id});
+const approveWithUndo=(t,hours,msg)=>async()=>{const a=await approve(t,hours);
+ undoToast(msg+' It starts in 10 seconds.',()=>revoke(t,a))};
 async function createTask({title,project,agent,executor,template,request}){
  const body={id:crypto.randomUUID(),owner_user_id:session.user.id,title:title.trim().slice(0,120),project,agent:agent.trim().slice(0,80),
   executor,request:request.trim().slice(0,8000),context:[]};
@@ -305,12 +541,27 @@ async function createTask({title,project,agent,executor,template,request}){
  await http('/rest/v1/ai_os_tasks',{method:'POST',body,prefer:'return=minimal'});
  return body;
 }
+// On touch screens approval takes a deliberate press-and-hold while a fill sweeps across the button,
+// so a scroll can never approve anything. Mouse clicks and the keyboard act at once.
+const HOLD_MS=650;
+function holdButton(label,cls,fn,ok){
+ let timer=null,touch=false,held=false;
+ const btn=el('button',{class:'hold '+(cls||'')},el('span',{class:'hold-fill','aria-hidden':'true'}),el('span',{class:'hold-label'},label));
+ const stop=()=>{clearTimeout(timer);timer=null;btn.classList.remove('holding')};
+ btn.addEventListener('pointerdown',e=>{touch=e.pointerType!=='mouse';held=false;if(!touch)return;
+  btn.style.setProperty('--hold',HOLD_MS+'ms');btn.classList.add('holding');
+  timer=setTimeout(()=>{held=true;stop();navigator.vibrate&&navigator.vibrate(15);act(btn,fn,ok)},HOLD_MS)});
+ for(const ev of ['pointerup','pointerleave','pointercancel'])btn.addEventListener(ev,stop);
+ btn.addEventListener('contextmenu',e=>{if(touch)e.preventDefault()});
+ btn.addEventListener('click',e=>{if(touch){touch=false;if(!held)toast('Press and hold to approve.');return}act(btn,fn,ok)});
+ return btn;
+}
 function taskActions(t,{compact=false}={}){
  const i=info(t),out=[];
  const b=(label,cls,fn,ok)=>el('button',{class:cls||'',onclick:e=>act(e.currentTarget,fn,ok)},label);
  if(t.status==='queued'){
-  if(i.needs){out.push(b('Approve for 1 hour','primary',()=>approve(t,1),'Approved for one hour.'));
-   if(!compact)out.push(b('Approve for 24 hours','',()=>approve(t,24),'Approved for 24 hours.'))}
+  if(i.needs){out.push(holdButton('Approve for 1 hour','primary',approveWithUndo(t,1,'Approved for one hour.')));
+   if(!compact)out.push(holdButton('Approve for 24 hours','',approveWithUndo(t,24,'Approved for 24 hours.')))}
   if(i.approval)out.push(b('Revoke approval','',()=>revoke(t,i.approval),'Approval revoked.'));
   if(!runnable(t))out.push(b('Mark done','primary',()=>setStatus(t,'completed'),'Marked done.'));
   out.push(el('button',{class:'ghost',onclick:e=>{if(confirm('Cancel "'+t.title+'"? '+(i.label==='Running'?'The worker stops at its next check. ':'')+'It will not run.'))
@@ -386,24 +637,25 @@ function taskDetails(t){
 
 // ---------- views ----------
 let view='home';
-const views={home:viewHome,tasks:viewTasks,review:viewReview,projects:viewProjects,bots:viewBots,control:viewControl};
+const views={home:viewHome,chat:viewChat,tasks:viewTasks,review:viewReview,projects:viewHome,bots:viewBots,control:viewControl,audit:viewAudit};
 function route(){
  const h=location.hash.slice(1);
  if(h.startsWith('task/')){const t=taskById(h.slice(5));view='tasks';render();if(t)taskDetails(t);return}
- view=views[h]?h:'home';render();
+ view=views[h]?h:'home';if(view!=='home'&&editing){editing=false;document.body.classList.remove('editing-home')}render();
 }
 window.addEventListener('hashchange',()=>session&&route());
 
 function nav(){
  const counts={review:toReview().length,home:waitingCount()};
+ const navView=view==='projects'?'home':view==='audit'?'control':view;
  for(const id of ['desktop-nav','mobile-nav']){
-  const n=$(id);n.replaceChildren(...VIEWS.map(([k,label,ic])=>el('a',{href:'#'+k,class:view===k?'active':null,'aria-current':view===k?'page':null},
+  const n=$(id);n.replaceChildren(...VIEWS.map(([k,label,ic])=>el('a',{href:'#'+k,class:navView===k?'active':null,'aria-current':navView===k?'page':null},
    icon(ic),el('span',{},label),counts[k]?el('span',{class:'count','aria-label':counts[k]+' waiting'},String(counts[k])):'')));
  }
 }
 function banners(){
  const out=[],s=state.status;
- if(state.error)out.push(el('div',{class:'notice',role:'alert'},'Could not refresh: '+state.error+(state.loadedAt?' Showing data from '+fmtTime(state.loadedAt)+'.':'')));
+ if(state.error)out.push(el('div',{class:'notice',role:'alert'},(navigator.onLine?'Could not refresh: '+state.error:'You are offline.')+(state.loadedAt?' Showing data from '+fmtTime(state.loadedAt)+'.':'')));
  if(!s)return out;
  if(!s.set_up)out.push(el('div',{class:'notice'},'The worker is not set up yet. On the Mac, run node agent-os.mjs setup.'));
  else if(s.paused)out.push(el('div',{class:'notice row between wrap'},el('span',{},'The queue is paused'+(s.pause_reason?': '+s.pause_reason:'')+'. Nothing new will run.'),
@@ -414,7 +666,7 @@ function banners(){
  return out;
 }
 function render(){
- if(!session||!state.status&&!state.error)return;
+ if(!session||!state.status&&!state.error||dragging)return;
  document.body.classList.toggle('flat',!!store.get('flat',false));
  nav();
  const pause=$('pause-button');
@@ -422,17 +674,19 @@ function render(){
   pause.setAttribute('aria-pressed',String(!!state.status.paused))}else pause.hidden=true;
  const keepFocus=document.activeElement&&document.activeElement.id;
  const scroll=$('conversation')?$('conversation').scrollTop:null;
+ const v=$('view');v.classList.toggle('enter',v.dataset.view!==view);v.dataset.view=view;
  $('view').replaceChildren(...banners(),...(state.status?views[view]():[]));
  if(keepFocus&&$(keepFocus)&&keepFocus!=='view')$(keepFocus).focus({preventScroll:true});
  const c=$('conversation');if(c)c.scrollTop=scroll==null||stickBottom?c.scrollHeight:scroll;stickBottom=false;
 }
 function heading(title,sub,...extra){return el('div',{class:'page-heading'},el('div',{},el('h1',{},title),sub?el('p',{class:'muted'},sub):''),...extra)}
 
-// Home: Elliot dominates; approvals, briefing and worker widgets sit alongside and can be reordered.
+// Elliot chat: the full conversation, one tap from Home.
 let stickBottom=true;
 const drafts=store.get('drafts',{});
 function elliotThread(){return store.get('thread','Agent OS')}
-function viewHome(){
+function viewChat(){return [el('div',{class:'chat-page'},elliotPanel())]}
+function elliotPanel(){
  const thread=elliotThread();
  const msgs=state.tasks.filter(t=>t.agent==='Elliot'&&t.project===thread).slice(0,30).reverse();
  const conv=el('div',{class:'conversation',id:'conversation','aria-live':'polite','aria-label':'Conversation with Elliot'});
@@ -471,33 +725,375 @@ function viewHome(){
  const pending=needsApproval().length;
  const elliot=el('section',{class:'panel elliot','aria-labelledby':'elliot-title'},
   el('div',{class:'row between elliot-head'},el('div',{class:'row'},el('span',{class:'orb','aria-hidden':'true'}),
-   el('div',{},el('h2',{id:'elliot-title'},'Elliot'),el('p',{class:'muted small'},'Answers come from your Mac worker, reading your vault read-only.'))),
+   el('div',{},el('h2',{id:'elliot-title'},'Elliot'),el('p',{class:'muted small'},'Answers come from your Mac worker, which reads your vault.'))),
    el('div',{class:'row'},focus&&pending?el('button',{class:'chip',onclick:()=>openDialog('Waiting for approval',approvalList())},plural(pending,'approval')):'',
     el('button',{class:'circle',id:'focus','aria-pressed':String(focus),'aria-label':focus?'Exit focused conversation':'Focus on the conversation',
      onclick:()=>{document.body.classList.toggle('focus-mode');render();$('focus')&&$('focus').focus()}},icon(focus?'i-close':'i-expand')))),
   conv,
   el('div',{class:'composer'},ta,el('div',{class:'composer-controls'},el('div',{class:'row'},psel,tsel),el('div',{class:'row'},mic,send)),
-   el('p',{class:'micro'},'Context: '+thread+' · vault read-only · '+(state.status.rules[tsel.value]?'runs by standing rule':'needs your approval to run')+' · ⌘/Ctrl+Enter sends')));
- const order=widgetOrder();
- const W={approvals:widgetApprovals,briefing:widgetBriefing,worker:widgetWorker};
- const side=el('div',{class:'support-column'},order.map((k,idx)=>widgetShell(k,W[k](),idx,order)));
- return [el('div',{class:'home-grid'},elliot,side)];
+   el('p',{class:'micro'},'Context: '+thread+' · reads your vault · '+(state.status.rules[tsel.value]?'runs by standing rule':'needs your approval to run')+' · ⌘/Ctrl+Enter sends')));
+ return elliot;
 }
-function widgetOrder(){const d=['approvals','briefing','worker'],o=store.get('widgets',d);
- return o.length===d.length&&d.every(k=>o.includes(k))?o:d}
-function moveWidget(k,to){const o=widgetOrder().filter(x=>x!==k);o.splice(Math.max(0,Math.min(o.length,to)),0,k);store.set('widgets',o);render();
- const b=document.querySelector('[data-widget="'+k+'"] .widget-actions button');b&&b.focus()}
-function widgetShell(k,[title,body,cls],idx,order){
- const w=el('section',{class:'panel widget '+(cls||''),'data-widget':k,draggable:'true','aria-label':title},
-  el('div',{class:'widget-head'},el('h2',{},title),el('div',{class:'widget-actions'},
-   el('button',{'aria-label':'Move '+title+' up',disabled:idx===0?true:null,onclick:()=>moveWidget(k,idx-1)},'↑'),
-   el('button',{'aria-label':'Move '+title+' down',disabled:idx===order.length-1?true:null,onclick:()=>moveWidget(k,idx+1)},'↓'))),body);
- w.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',k);w.classList.add('dragging')});
- w.addEventListener('dragend',()=>w.classList.remove('dragging'));
- w.addEventListener('dragover',e=>e.preventDefault());
- w.addEventListener('drop',e=>{e.preventDefault();const from=e.dataTransfer.getData('text/plain');if(from&&from!==k)moveWidget(from,widgetOrder().indexOf(k))});
+
+// Home: a live board of every project and bot. Elliot is one keystroke away from the quick ask bar.
+const PROJECT_HUE={'Agent OS':'#d6be7a','Insight':'#7fc8b5','Roblox':'#e79a7d','Growth':'#9fd3a9','Markets':'#8fb4e3','Repo Watch':'#b9a3e3','Team':'#f2cd85','AI OS':'#b8c9bc'};
+const isOpen=t=>t.status==='queued'||t.status==='awaiting_review';
+const isRunning=t=>info(t).label==='Running';
+// A task is stuck when it has been open with no change for two days.
+const STUCK_MS=2*864e5;
+const isStuck=t=>isOpen(t)&&!isRunning(t)&&Date.now()-new Date(t.updated_at)>STUCK_MS;
+const stuckDays=t=>Math.floor((Date.now()-new Date(t.updated_at))/864e5);
+// Where a task stands on the board, most urgent first.
+function lane(t){const i=info(t);
+ if(t.status==='awaiting_review')return 'review';if(i.needs)return 'needs';if(i.label==='Running')return 'running';if(botFor(t))return 'bot';return 'queued'}
+const LANES=[['needs','Needs you'],['review','To review'],['running','Running'],['bot','With a bot'],['queued','Queued']];
+const LANE_RANK=Object.fromEntries(LANES.map(([k],i)=>[k,i]));
+const svgEl=(tag,attrs)=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n};
+function ring(value,max,{size=56,stroke=6,color='var(--accent)',label}={}){
+ const r=(size-stroke)/2,c=2*Math.PI*r,pct=max?Math.min(1,value/max):0;
+ const s=svgEl('svg',{class:'ring',width:size,height:size,viewBox:'0 0 '+size+' '+size,role:'img','aria-label':label||value+' of '+max});
+ s.append(svgEl('circle',{cx:size/2,cy:size/2,r,fill:'none',stroke:'#254636','stroke-width':stroke}),
+  svgEl('circle',{class:'ring-fill',cx:size/2,cy:size/2,r,fill:'none',stroke:color,'stroke-width':stroke,'stroke-linecap':'round',
+   'stroke-dasharray':c.toFixed(1),'stroke-dashoffset':(c*(1-pct)).toFixed(1),style:'--full:'+c.toFixed(1),transform:'rotate(-90 '+size/2+' '+size/2+')'}));
+ return s;
+}
+// Numbers count up only when they change, so the 20-second refresh stays calm.
+const shownNumbers={};
+function countUp(key,n){
+ const from=shownNumbers[key]??0,span=el('span',{class:'num'},String(n));shownNumbers[key]=n;
+ if(from===n||matchMedia('(prefers-reduced-motion: reduce)').matches)return span;
+ const t0=performance.now(),dur=650;
+ const step=now=>{const p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);span.textContent=String(Math.round(from+(n-from)*e));if(p<1)requestAnimationFrame(step)};
+ requestAnimationFrame(step);return span;
+}
+// Dot-matrix numbers and a tick dial, drawn as SVG so they stay crisp and need no web font.
+const DOT_FONT={'0':'01110100011001110101110011000101110','1':'00100011000010000100001000010001110','2':'01110100010000100010001000100011111',
+ '3':'11110000010000101110000010000111110','4':'00010001100101010010111110001000010','5':'11111100001111000001000011000101110',
+ '6':'00110010001000011110100011000101110','7':'11111000010001000100010000100001000','8':'01110100011000101110100011000101110',
+ '9':'01110100011000101111000010001001100','%':'11001110100001000100010000101110011'};
+function dotDigits(text,{dot=4,gap=1.6,lit='var(--accent)'}={}){
+ const chars=[...String(text)].filter(c=>DOT_FONT[c]),step=dot+gap,w=chars.length*6*step-step,h=7*step-gap;
+ const s=svgEl('svg',{class:'dots',width:w.toFixed(1),height:h.toFixed(1),viewBox:'0 0 '+w.toFixed(1)+' '+h.toFixed(1),'aria-hidden':'true'});
+ chars.forEach((c,ci)=>{for(let i=0;i<35;i++){const on=DOT_FONT[c][i]==='1';
+  s.append(svgEl('circle',{cx:(ci*6*step+(i%5)*step+dot/2).toFixed(1),cy:(Math.floor(i/5)*step+dot/2).toFixed(1),r:(dot/2).toFixed(2),fill:on?lit:'#ffffff10',class:on?'lit':''}))}});
+ return el('span',{class:'dot-num'},s,el('span',{class:'sr-only'},String(text)));
+}
+function tickDial(value,max,{size=150,ticks=44,label}={}){
+ const c=size/2,r1=size/2-4,r2=size/2-16,lit=max?Math.round(ticks*Math.min(1,value/max)):0,full=max&&value>=max;
+ const s=svgEl('svg',{class:'dial',width:size,height:size,viewBox:'0 0 '+size+' '+size,role:'img','aria-label':label||value+' of '+max});
+ for(let i=0;i<ticks;i++){const a=(-225+270*i/(ticks-1))*Math.PI/180,on=i<lit;
+  s.append(svgEl('line',{x1:(c+r2*Math.cos(a)).toFixed(1),y1:(c+r2*Math.sin(a)).toFixed(1),x2:(c+r1*Math.cos(a)).toFixed(1),y2:(c+r1*Math.sin(a)).toFixed(1),
+   class:'tick'+(on?' on':'')+(full?' full':''),style:'--d:'+(i*18)+'ms','stroke-width':i%4===0?2.6:1.6,'stroke-linecap':'round'}))}
+ return s;
+}
+const greeting=()=>{const h=new Date().getHours();return h<5?'Up late':h<12?'Good morning':h<17?'Good afternoon':'Good evening'};
+function pulseLine(){
+ const s=state.status,w=waitingCount(),r=toReview().length,run=state.tasks.filter(isRunning).length;
+ const bits=[];
+ bits.push(w?plural(w,'thing')+' need'+(w===1?'s':'')+' you':'nothing needs you');
+ if(r)bits.push(plural(r,'result')+' to review');
+ bits.push(run?plural(run,'task')+' running':s.paused?'the queue is paused':workerOnline()?'the Mac is online and idle':'the Mac is asleep');
+ const line=bits.join(', ');return line.charAt(0).toUpperCase()+line.slice(1)+'.';
+}
+function quickAsk(){
+ const proj=store.get('quick-proj',elliotThread());
+ const input=el('input',{id:'quick-ask',type:'text',maxlength:'8000',autocomplete:'off','aria-label':'Ask Elliot',placeholder:'Ask Elliot anything about your notes…'});
+ input.value=store.get('quick-draft','');
+ input.addEventListener('input',()=>store.set('quick-draft',input.value));
+ const psel=el('select',{class:'thread-select',id:'quick-proj','aria-label':'Project'},PROJECTS.map(p=>el('option',{value:p,selected:p===proj?true:null},p)));
+ psel.addEventListener('change',()=>store.set('quick-proj',psel.value));
+ const go=async btn=>{const text=input.value.trim();if(!text)return input.focus();
+  const tpl=store.get('ask','research');btn.disabled=true;
+  try{await createTask({title:text.split('\n')[0].slice(0,80),project:psel.value,agent:'Elliot',executor:'Claude',template:tpl,request:text});
+   input.value='';store.del('quick-draft');store.set('thread',psel.value);
+   toast(state.status.rules[tpl]?'Sent to Elliot. Your rule is on, so the Mac will run it.':'Sent to Elliot. Approve it to let the Mac run it.')}
+  catch(err){if(!err.signedOut)toast('Not sent: '+err.message)}finally{btn.disabled=false;await load()}};
+ const send=el('button',{class:'primary circle',id:'quick-send','aria-label':'Send to Elliot',onclick:e=>go(e.currentTarget)},icon('i-send'));
+ input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();go(send)}});
+ return el('div',{class:'quick-ask'},icon('i-chat'),input,psel,micButton(input),send);
+}
+function hero(){
+ const s=state.status,online=workerOnline(),running=state.tasks.some(isRunning);
+ const orbCls='orb hero-orb'+(running?' busy':online?' live':' sleep');
+ return el('section',{class:'panel elliot hero rise',style:'--i:0'},el('span',{class:'blob b1','aria-hidden':'true'}),el('span',{class:'blob b2','aria-hidden':'true'}),
+  el('div',{class:'hero-main'},
+   el('div',{class:'row hero-top'},el('span',{class:orbCls,'aria-hidden':'true'}),
+    el('div',{},el('p',{class:'label'},new Date().toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'})),
+     el('h1',{},greeting()+', Will'))),
+   el('p',{class:'hero-line'},pulseLine()),
+   quickAsk(),
+   el('div',{class:'row wrap hero-links'},el('a',{href:'#chat',class:'button-link'},'Open the Elliot chat'),el('span',{class:'micro'},'Press / to ask from anywhere on Home'))),
+  el('div',{class:'hero-gauge'},
+   el('div',{class:'gauge-ring'},tickDial(s.used_today,s.daily_call_cap,{label:s.used_today+' of '+s.daily_call_cap+' model calls used today'}),
+    el('div',{class:'gauge-text'},dotDigits(s.used_today,{dot:5,gap:2}),el('span',{},'of '+s.daily_call_cap))),
+   el('p',{class:'small muted'},'model calls today'),
+   usageRings(),
+   el('span',{class:'badge '+(online?'ok':'danger')},el('span',{class:'dot'+(online?' pulse':'')}),online?'Mac online':'Mac offline')));
+}
+function tiles(){
+ const run=state.tasks.filter(isRunning).length,done=state.week&&state.week.tasks?state.week.tasks.completed||0:state.tasks.filter(t=>t.status==='completed').length;
+ const T=[['waiting','Needs you',waitingCount(),'i-review','hot',()=>openDialog('Waiting for you',approvalList())],
+  ['review','To review',toReview().length,'i-check','',()=>location.hash='review'],
+  ['running','Running now',run,'i-tasks','',()=>{setFilter('running')}],
+  ['done','Done this week',done,'i-check','',()=>state.week&&summaryDialog(state.week,'This week so far')]];
+ return el('div',{class:'tiles'},T.map(([k,label,n,ic,hot,fn],i)=>el('button',{class:'tile glow rise'+(n&&hot?' hot':''),style:'--i:'+(i+1),'data-tile':k,onclick:fn,
+  'aria-label':label+': '+n},el('span',{class:'tile-icon'},icon(ic)),el('strong',{class:'tile-num'},countUp('tile-'+k,n)),el('span',{class:'tile-label'},label))));
+}
+// Bot lineup: every active bot, busiest first. Tap one to see and change its work.
+const botInitials=n=>n.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const botHue=n=>{let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))%360;return h};
+function botAvatar(b,size){const open=tasksFor(b).filter(isOpen).length,pct=Math.min(1,open/4);
+ return el('span',{class:'avatar-ring'+(open?' busy':''),style:'--p:'+(pct*360)+'deg;--s:'+size+'px;--bh:'+botHue(b.name)},
+  el('span',{class:'bot-face'},b.platform==='ChatGPT'?'GPT':botInitials(b.name)),
+  open?el('span',{class:'bot-count'},String(open)):'');
+}
+function botLineup(){
+ const active=state.bots.filter(b=>b.active).map(b=>[b,tasksFor(b).filter(isOpen).length]).sort((a,b)=>b[1]-a[1]||a[0].name.localeCompare(b[0].name));
+ const busy=active.filter(x=>x[1]).length;
+ return el('section',{class:'panel lineup rise',style:'--i:5','aria-labelledby':'lineup-title'},
+  el('div',{class:'row between wrap'},el('h2',{id:'lineup-title'},'Your team'),
+   el('span',{class:'small muted'},plural(busy,'bot')+' with work · '+(active.length-busy)+' free')),
+  active.length?el('div',{class:'lineup-row'},active.map(([b,n])=>el('button',{class:'lineup-bot','aria-label':b.name+', '+(n?plural(n,'open task'):'free'),onclick:()=>botDialog(b)},
+   botAvatar(b,52),el('span',{class:'lineup-name'},b.name),el('span',{class:'lineup-role'},b.role||b.platform)))):el('p',{class:'empty'},'No bots yet. Add them in the Bots tab.'));
+}
+function botDialog(b){
+ const open=tasksFor(b).filter(isOpen),routines=state.routines.filter(r=>r.bot_id===b.id);
+ openDialog(b.name,[el('div',{class:'row'},botAvatar(b,60),el('div',{},el('p',{class:'muted small',style:'margin:0'},b.platform+' · '+(b.connected?'connected':'not connected yet')),el('p',{style:'margin:4px 0 0'},b.role||''))),
+  el('h3',{},open.length?plural(open.length,'open task'):'No open tasks'),
+  el('div',{},open.map(t=>el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},t.title),el('p',{},t.project+' · '+info(t).label)),el('button',{class:'ghost',onclick:()=>taskDetails(t)},'Open')))),
+  routines.length?el('div',{},el('h3',{},'Routines'),routines.map(routineRow)):'',
+  el('div',{class:'row wrap',style:'margin-top:16px'},el('button',{class:'primary',onclick:()=>newTaskDialog({executor:botExecutor(b),agent:b.name,bot:b})},icon('i-plus'),'New task for '+b.name),
+   el('a',{class:'button-link',href:'#bots',onclick:()=>$('dialog').close()},'Manage in Bots'))]);
+}
+// Project cards
+const openCards=new Set(store.get('open-cards',[]));
+const boardFilter=()=>store.get('board-filter','all');
+function setFilter(f){store.set('board-filter',f);render();const b=document.querySelector('[data-filter="'+f+'"]');b&&b.focus()}
+const FILTERS=[['all','Everything',()=>true],['needs','Needs me',t=>lane(t)==='needs'||lane(t)==='review'],['running','Running',t=>lane(t)==='running'],['bot','With bots',t=>!!botFor(t)],['stuck','Stuck',isStuck]];
+function filterBar(){
+ const f=boardFilter();
+ return el('div',{class:'filter-bar rise',style:'--i:6',role:'group','aria-label':'Filter the board'},FILTERS.map(([k,label,fn])=>{
+  const n=state.tasks.filter(t=>isOpen(t)&&fn(t)).length;
+  return el('button',{class:'chip filter'+(f===k?' active':''),'data-filter':k,'aria-pressed':String(f===k),onclick:()=>setFilter(k)},label,el('span',{class:'chip-count'},String(n)))}));
+}
+function boardRow(t){
+ const i=info(t),b=botFor(t),l=lane(t);
+ return el('button',{class:'board-row lane-'+l,onclick:()=>taskDetails(t)},el('span',{class:'lane-dot','aria-hidden':'true'}),
+  el('span',{class:'board-text'},el('span',{class:'board-title'},t.title,isStuck(t)?el('span',{class:'stuck-badge'},'Stuck '+stuckDays(t)+'d'):''),
+   el('span',{class:'board-meta'},i.label+' · '+(b?b.name:t.executor==='Claude'?'Elliot on the Mac':t.agent+' via '+t.executor)+' · '+ago(t.updated_at))));
+}
+function laneBar(open){
+ const counts=LANES.map(([k,label])=>[k,label,open.filter(t=>lane(t)===k).length]).filter(x=>x[2]);
+ if(!counts.length)return el('div',{class:'lane-bar empty-bar'});
+ return el('div',{class:'lane-bar',role:'img','aria-label':counts.map(([,l,n])=>n+' '+l.toLowerCase()).join(', ')},
+  counts.map(([k,label,n])=>el('span',{class:'seg lane-'+k,style:'flex:'+n,title:n+' '+label.toLowerCase()})));
+}
+function projectCard(p,idx){
+ const all=state.tasks.filter(t=>t.project===p),fn=FILTERS.find(x=>x[0]===boardFilter())[2];
+ const open=all.filter(isOpen),shown=open.filter(fn).sort((a,b)=>LANE_RANK[lane(a)]-LANE_RANK[lane(b)]);
+ const done=all.filter(t=>t.status==='completed').length,need=open.filter(t=>lane(t)==='needs'||lane(t)==='review').length;
+ const expanded=openCards.has(p),limit=expanded?shown.length:3,hue=PROJECT_HUE[p]||'#d6be7a';
+ const toggle=()=>{expanded?openCards.delete(p):openCards.add(p);store.set('open-cards',[...openCards]);render()};
+ return el('section',{class:'project-card glow rise'+(expanded?' expanded':''),style:'--hue:'+hue+';--i:'+(7+idx),'data-project':p,'aria-labelledby':'pc-'+idx},
+  el('div',{class:'pc-head'},
+   el('div',{class:'pc-ring'},ring(done,done+open.length,{size:52,stroke:5,color:hue,label:done+' of '+(done+open.length)+' tasks done'}),el('span',{class:'pc-pct'},(done+open.length?Math.round(100*done/(done+open.length)):0)+'%')),
+   el('div',{class:'pc-title'},el('h2',{id:'pc-'+idx},p),el('p',{class:'small muted'},plural(open.length,'open task')+' · '+done+' done')),
+   need?el('span',{class:'badge attention'},el('span',{class:'dot pulse'}),need+' need you'):''),
+  goalBlock(p),
+  laneBar(open),
+  shown.length?el('div',{class:'board-list'},shown.slice(0,limit).map(boardRow)):el('p',{class:'muted small pc-empty'},open.length?'Nothing here matches this filter.':'All clear. Nothing open.'),
+  el('div',{class:'pc-foot'},
+   shown.length>3?el('button',{class:'ghost small-btn','aria-expanded':String(expanded),onclick:toggle},expanded?'Show less':'Show all '+shown.length):el('span'),
+   el('div',{class:'row'},
+    el('button',{class:'ghost small-btn',onclick:()=>{store.set('thread',p);stickBottom=true;location.hash='chat'}},icon('i-chat'),'Ask'),
+    el('button',{class:'ghost small-btn',onclick:()=>newTaskDialog({project:p})},icon('i-plus'),'Task'),
+    el('button',{class:'ghost small-btn',onclick:()=>{store.set('proj',p);store.set('tab','all');location.hash='tasks'}},'All'))));
+}
+// Recent activity, built from tasks, runs and notes already on the page.
+function activity(){
+ const ev=[];
+ for(const t of state.tasks){ev.push([t.created_at,'new','New task',t.title+' · '+t.project,t]);
+  if(t.status==='completed')ev.push([t.updated_at,'done','Done',t.title,t]);
+  if(t.status==='failed')ev.push([t.updated_at,'fail',isCancelled(t)?'Cancelled':'Failed',t.title,t])}
+ for(const r of state.runs){const t=taskById(r.task_id);if(!t)continue;
+  if(r.finished_at)ev.push([r.finished_at,r.state==='returned'?'run':'fail',r.state==='returned'?'Elliot answered':'Run '+r.state,t.title,t]);
+  else if(r.claimed_at)ev.push([r.claimed_at,'running','Elliot started',t.title,t])}
+ for(const n of state.notes)ev.push([n.created_at,'note','Note suggested',n.title,taskById(n.task_id)]);
+ return ev.filter(e=>e[0]).sort((a,b)=>new Date(b[0])-new Date(a[0])).slice(0,8);
+}
+function widgetActivity(){
+ const ev=activity();
+ return ['Activity',ev.length?el('ol',{class:'feed'},ev.map(([at,kind,what,detail,t])=>el('li',{class:'feed-item feed-'+kind},
+  el('span',{class:'feed-dot','aria-hidden':'true'}),
+  el('div',{class:'feed-body'},el('p',{},el('strong',{},what),' ',detail),el('p',{class:'micro'},ago(at))),
+  t?el('button',{class:'ghost small-btn',onclick:()=>taskDetails(t),'aria-label':'Open '+t.title},'Open'):''))):el('p',{class:'empty'},'Nothing yet.'),'activity-widget']}
+// Routines: schedule text and the next time each one fires, in the worker's timezone.
+const DAY_NAMES=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const hhmm=(h,m)=>{const d=new Date(2000,0,1,h,m);return d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})};
+function daysText(days){const d=[...days].sort();
+ if(d.length===7)return 'Every day';if(d.join()==='1,2,3,4,5')return 'Weekdays';if(d.join()==='6,7')return 'Weekends';
+ return d.map(x=>DAY_NAMES[x-1]).join(', ')}
+const scheduleText=r=>daysText(r.days)+' at '+hhmm(r.hour,r.minute);
+function nowInZone(){
+ const tz=(state.status&&state.status.timezone)||undefined;
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:tz,weekday:'short',hour:'numeric',minute:'numeric',year:'numeric',month:'2-digit',day:'2-digit',hourCycle:'h23'})
+  .formatToParts(new Date()).map(p=>[p.type,p.value]));
+ return {dow:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].indexOf(parts.weekday)+1,min:+parts.hour*60+ +parts.minute,date:parts.year+'-'+parts.month+'-'+parts.day};
+}
+function minutesToNext(r){
+ const n=nowInZone(),at=r.hour*60+r.minute;
+ for(let off=0;off<8;off++){const dow=(n.dow-1+off)%7+1;if(!r.days.includes(dow))continue;
+  if(off===0&&(at<n.min||r.last_run_on===n.date))continue;return off*1440+at-n.min}
+ return null;
+}
+function inText(m){if(m==null)return '';if(m<1)return 'now';if(m<60)return 'in '+m+' min';
+ if(m<1440)return 'in '+Math.floor(m/60)+' h'+(m%60?' '+(m%60)+' min':'');return 'in '+Math.round(m/1440)+' d'}
+const routineBot=r=>state.bots.find(b=>b.id===r.bot_id);
+function routineSwitch(r){
+ return el('button',{class:'switch'+(r.enabled?' on':''),role:'switch','aria-checked':String(r.enabled),'aria-label':r.name+(r.enabled?' is on':' is off'),
+  onclick:e=>act(e.currentTarget,()=>http('/rest/v1/ai_os_routines?id=eq.'+encodeURIComponent(r.id),{method:'PATCH',body:{enabled:!r.enabled},prefer:'return=minimal'}),
+   r.name+(r.enabled?' turned off.':' turned on. It creates its task on schedule.'))},el('span',{class:'knob'}));
+}
+function routineRow(r){
+ const b=routineBot(r),next=r.enabled?minutesToNext(r):null;
+ return el('div',{class:'list-row routine'+(r.enabled?'':' off')},
+  el('div',{},el('strong',{class:'small'},r.name),
+   el('p',{},scheduleText(r)+' · '+(b?b.name:r.executor)+' · '+r.project+(r.enabled&&next!=null?' · next '+inText(next):'')+(r.last_run_on?' · last ran '+fmtDay(r.last_run_on):''))),
+  el('div',{class:'row'},el('button',{class:'ghost small-btn',onclick:e=>act(e.currentTarget,()=>rpc('ai_os_routine_run_now',{p_id:r.id}),'Task created from '+r.name+'.')},'Run now'),routineSwitch(r)));
+}
+function widgetNext(){
+ const on=state.routines.filter(r=>r.enabled).map(r=>[r,minutesToNext(r)]).filter(x=>x[1]!=null).sort((a,b)=>a[1]-b[1]);
+ const off=state.routines.filter(r=>!r.enabled);
+ return ['Up next',el('div',{},
+  on.length?el('ol',{class:'up-next'},on.slice(0,4).map(([r,m])=>{const b=routineBot(r);
+   return el('li',{},b?botAvatar(b,36):el('span',{class:'orb small-orb'}),el('div',{},el('strong',{class:'small'},r.name),el('p',{class:'micro',style:'margin:2px 0 0'},scheduleText(r))),
+    el('span',{class:'when'},inText(m)))})):el('p',{class:'muted small'},'No routines are on.'),
+  off.length?el('details',{class:'routines-off'},el('summary',{},plural(off.length,'routine')+' switched off'),off.map(routineRow)):'',
+  el('p',{class:'micro'},'Routines create their task on schedule, even while the Mac sleeps. Anything that writes still waits for you.')),'next-widget']}
+function projectsWidget(){
+ const shown=PROJECTS.filter(p=>p!=='AI OS'||state.tasks.some(t=>t.project===p));
+ // Busy projects first; quiet ones fold into a single row.
+ const score=p=>{const o=state.tasks.filter(t=>t.project===p&&isOpen(t));return o.filter(t=>lane(t)==='needs'||lane(t)==='review').length*100+o.length};
+ const busy=shown.filter(p=>score(p)>0).sort((a,b)=>score(b)-score(a)),quiet=shown.filter(p=>score(p)===0);
+ return el('section',{class:'projects-w','aria-labelledby':'projects-title'},
+  el('div',{class:'row between wrap board-head'},el('h2',{id:'projects-title'},'Projects'),filterBar()),
+  el('div',{class:'project-grid'},busy.map(projectCard)),
+  quiet.length?el('div',{class:'quiet rise',style:'--i:'+(7+busy.length)},el('span',{class:'small muted'},'All clear:'),
+   quiet.map(p=>el('button',{class:'chip',style:'--hue:'+(PROJECT_HUE[p]||'#d6be7a'),onclick:()=>newTaskDialog({project:p})},el('span',{class:'hue-dot'}),p))):'');
+}
+const panel=fn=>()=>{const [title,body,cls]=fn();
+ return el('section',{class:'panel widget '+(cls||''),'aria-label':title},el('div',{class:'widget-head'},el('h2',{},title)),body)};
+
+// Home is a grid of widgets. Customize mode lets you drag them into any order, resize, hide and restore them.
+const WIDGETS={
+ hero:{title:'Ask Elliot',size:'full',render:hero},
+ stats:{title:'At a glance',size:'full',render:tiles},
+ approvals:{title:'Approvals',size:'normal',sizes:['normal','wide'],render:panel(widgetApprovals)},
+ quick:{title:'Quick actions',size:'normal',sizes:['normal','wide'],render:panel(widgetQuick)},
+ team:{title:'Your team',size:'wide',sizes:['normal','wide','full'],render:botLineup},
+ projects:{title:'Projects',size:'wide',sizes:['wide','full'],render:projectsWidget},
+ next:{title:'Up next',size:'normal',sizes:['normal','wide'],render:panel(widgetNext)},
+ activity:{title:'Activity',size:'normal',sizes:['normal','wide'],render:panel(widgetActivity)},
+ week:{title:'This week',size:'normal',sizes:['normal','wide'],render:panel(widgetWeek)},
+ worker:{title:'Worker',size:'normal',sizes:['normal','wide'],render:panel(widgetWorker)},
+};
+const SIZE_LABEL={normal:'Small',wide:'Wide',full:'Full'};
+function layout(){
+ const l=store.get('home-layout',{}),keys=Object.keys(WIDGETS);
+ const order=(Array.isArray(l.order)?l.order:[]).filter(k=>WIDGETS[k]);
+ for(const k of keys)if(!order.includes(k))order.push(k);
+ return {order,hidden:(Array.isArray(l.hidden)?l.hidden:[]).filter(k=>WIDGETS[k]),size:l.size&&typeof l.size==='object'?l.size:{}};
+}
+const saveLayout=l=>store.set('home-layout',l);
+const sizeOf=(k,l)=>{const s=l.size[k];return (WIDGETS[k].sizes||[]).includes(s)?s:WIDGETS[k].size};
+let editing=false,dragging=null;
+function setEditing(on){editing=on;document.body.classList.toggle('editing-home',on);render();
+ if(on)toast('Drag widgets by their handle to rearrange. Tap Done when finished.')}
+function changeLayout(fn,focusSel){const l=layout();fn(l);saveLayout(l);render();
+ if(focusSel){const b=document.querySelector(focusSel);b&&b.focus()}}
+function widgetFrame(k,l){
+ const W=WIDGETS[k],size=sizeOf(k,l),idx=l.order.filter(x=>!l.hidden.includes(x)).indexOf(k);
+ const bar=editing?el('div',{class:'w-bar'},
+  el('button',{class:'w-grip','aria-label':'Drag '+W.title,title:'Drag to move'},el('span',{class:'grip-dots','aria-hidden':'true'})),
+  el('strong',{class:'w-name'},W.title),
+  el('div',{class:'w-tools'},
+   el('button',{class:'w-tool','aria-label':'Move '+W.title+' earlier',disabled:idx===0?true:null,onclick:()=>moveTo(k,-1)},'←'),
+   el('button',{class:'w-tool','aria-label':'Move '+W.title+' later',onclick:()=>moveTo(k,1)},'→'),
+   W.sizes?el('button',{class:'w-tool w-size','aria-label':'Size of '+W.title+': '+SIZE_LABEL[size],onclick:()=>changeLayout(l=>{const s=W.sizes;l.size[k]=s[(s.indexOf(size)+1)%s.length]},'[data-w="'+k+'"] .w-size')},SIZE_LABEL[size]):'',
+   k==='hero'?'':el('button',{class:'w-tool w-hide','aria-label':'Hide '+W.title,onclick:()=>changeLayout(l=>l.hidden.push(k))},'Hide'))):'';
+ const w=el('div',{class:'w w-'+size,'data-w':k},bar,el('div',{class:'w-body'},W.render()));
+ if(!editing)longPress(w);
  return w;
 }
+function moveTo(k,dir){changeLayout(l=>{const vis=l.order.filter(x=>!l.hidden.includes(x)),i=vis.indexOf(k),j=i+dir;
+ if(j<0||j>=vis.length)return;const other=vis[j],a=l.order.indexOf(k),b=l.order.indexOf(other);l.order[a]=other;l.order[b]=k},
+ '[data-w="'+k+'"] .w-tool[aria-label^="Move '+WIDGETS[k].title+(dir<0?' earlier':' later')+'"]')}
+// Pressing and holding an empty part of any widget opens Customize, like a phone home screen.
+function longPress(w){
+ let t=null,x=0,y=0;
+ w.addEventListener('pointerdown',e=>{if(e.button||e.target.closest('button,a,input,select,textarea,summary,label,.board-row'))return;
+  x=e.clientX;y=e.clientY;t=setTimeout(()=>{t=null;navigator.vibrate&&navigator.vibrate(20);setEditing(true)},550)});
+ const cancel=()=>{clearTimeout(t);t=null};
+ w.addEventListener('pointermove',e=>{if(t&&Math.hypot(e.clientX-x,e.clientY-y)>8)cancel()});
+ for(const ev of ['pointerup','pointercancel','pointerleave'])w.addEventListener(ev,cancel);
+}
+function customizeBar(l){
+ const hidden=l.hidden;
+ return el('div',{class:'customize-bar'},
+  el('div',{class:'row wrap',style:'gap:8px'},el('strong',{},'Customize Home'),
+   hidden.length?hidden.map(k=>el('button',{class:'chip add-w',onclick:()=>changeLayout(l=>l.hidden=l.hidden.filter(x=>x!==k))},icon('i-plus'),WIDGETS[k].title)):el('span',{class:'small muted'},'Drag the handles to rearrange. Hidden widgets show up here.')),
+  el('div',{class:'row'},el('button',{class:'ghost',onclick:()=>{store.del('home-layout');render();toast('Home layout reset.')}},'Reset'),
+   el('button',{class:'primary',id:'done-customize',onclick:()=>setEditing(false)},'Done')));
+}
+function viewHome(){
+ const l=layout(),vis=l.order.filter(k=>!l.hidden.includes(k));
+ return [editing?customizeBar(l):'',
+  el('div',{class:'w-grid'+(editing?' editing':''),id:'w-grid'},vis.map(k=>widgetFrame(k,l))),
+  editing?'':el('div',{class:'customize-foot'},el('button',{class:'ghost',id:'customize',onclick:()=>setEditing(true)},icon('i-settings'),'Customize Home'))];
+}
+
+// Smooth dragging: the widget lifts into a floating copy that follows the pointer, a dashed slot marks
+// where it will land, and the other widgets glide to their new places (FLIP animation).
+function flip(grid,mutate){
+ const items=[...grid.children],first=new Map(items.map(n=>[n,n.getBoundingClientRect()]));
+ mutate();
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ for(const n of items){const a=first.get(n),b=n.getBoundingClientRect(),dx=a.left-b.left,dy=a.top-b.top;
+  if(dx||dy)n.animate([{transform:'translate('+dx+'px,'+dy+'px)'},{transform:'none'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'})}
+}
+document.addEventListener('pointerdown',e=>{
+ const grip=e.target.closest&&e.target.closest('.w-grip');if(!grip||dragging)return;
+ const w=grip.closest('.w'),grid=$('w-grid');if(!w||!grid)return;
+ e.preventDefault();
+ const r=w.getBoundingClientRect(),ghost=w.cloneNode(true);
+ ghost.classList.add('w-ghost');ghost.removeAttribute('data-w');ghost.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+ Object.assign(ghost.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+ document.body.append(ghost);w.classList.add('w-slot');document.body.classList.add('w-dragging');
+ dragging={w,ghost,grid,dx:e.clientX-r.left,dy:e.clientY-r.top,x:e.clientX,y:e.clientY,last:null,raf:0};
+ ghost.animate([{transform:'scale(1)'},{transform:'scale(1.03) rotate(-.6deg)'}],{duration:160,fill:'forwards',easing:'ease-out'});
+ navigator.vibrate&&navigator.vibrate(10);
+ const tick=()=>{if(!dragging)return;const d=dragging;
+  d.ghost.style.left=(d.x-d.dx)+'px';d.ghost.style.top=(d.y-d.dy)+'px';
+  const edge=90;if(d.y<edge)scrollBy(0,-Math.ceil((edge-d.y)/6));else if(d.y>innerHeight-edge)scrollBy(0,Math.ceil((d.y-innerHeight+edge)/6));
+  const hit=document.elementFromPoint(d.x,d.y),t=hit&&hit.closest('.w');
+  if(t&&t!==d.w&&t.parentNode===d.grid&&t!==d.last){const items=[...d.grid.children],from=items.indexOf(d.w),to=items.indexOf(t);
+   flip(d.grid,()=>d.grid.insertBefore(d.w,from<to?t.nextSibling:t));d.last=t}
+  else if(t===d.w)d.last=null;
+  d.raf=requestAnimationFrame(tick)};
+ dragging.raf=requestAnimationFrame(tick);
+});
+document.addEventListener('pointermove',e=>{if(!dragging)return;e.preventDefault();dragging.x=e.clientX;dragging.y=e.clientY},{passive:false});
+function endDrag(){
+ if(!dragging)return;const d=dragging;cancelAnimationFrame(d.raf);
+ const r=d.w.getBoundingClientRect(),g=d.ghost.getBoundingClientRect();
+ const land=d.ghost.animate([{transform:'scale(1.03) rotate(-.6deg)',left:g.left+'px',top:g.top+'px'},{transform:'none',left:r.left+'px',top:r.top+'px'}],
+  {duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
+ const done=()=>{d.ghost.remove();d.w.classList.remove('w-slot');document.body.classList.remove('w-dragging');dragging=null;
+  const l=layout(),vis=[...d.grid.children].map(n=>n.dataset.w).filter(Boolean);
+  l.order=[...vis,...l.order.filter(k=>!vis.includes(k))];saveLayout(l);render()};
+ land.onfinish=done;land.oncancel=done;
+}
+document.addEventListener('pointerup',endDrag);document.addEventListener('pointercancel',endDrag);
 function knowledgeItem(k){
  const run=state.runs.find(r=>r.id===k.run_id)||{trust:k.trust,history_path:k.history_path},t=taskById(k.task_id),i=trustInfo(run);
  return el('div',{class:'approval-item'},el('div',{class:'row between wrap'},el('strong',{},'Save to Knowledge? '+k.title),badge('Your call')),
@@ -531,22 +1127,40 @@ function approvalList(){
 }
 function widgetApprovals(){const n=waitingCount();
  return [n?'Approvals ('+n+')':'Approvals',el('div',{},approvalList()),'cream approval-widget']}
-function widgetBriefing(){
- const s=state.status,now=new Date();
- const queued=state.tasks.filter(t=>t.status==='queued'&&runnable(t)&&!info(t).needs);
- const running=state.tasks.filter(t=>info(t).label==='Running');
- const nexts=PROJECTS.map(p=>[p,state.tasks.filter(t=>t.project===p&&t.status==='queued').slice(-1)[0]]).filter(x=>x[1]);
- return ['Today',el('div',{},
-  el('p',{class:'label'},now.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'})),
-  el('div',{class:'briefing'},
-   el('p',{},plural(needsApproval().length,'task')+' waiting for your approval.'),
-   notesPending().length?el('p',{},plural(notesPending().length,'suggested note')+' waiting for you.'):'',
-   el('p',{},plural(toReview().length,'result')+' ready to review.'),
-   el('p',{},running.length?plural(running.length,'task')+' running now.':queued.length?plural(queued.length,'approved task')+' waiting for the worker.':'Nothing is running.'),
-   el('p',{},'Worker: '+(workerOnline()?'online':'offline')+(s.paused?', queue paused':'')+'.')),
-  nexts.length?el('div',{class:'open-list'},el('p',{class:'label'},'Next up by project'),nexts.map(([p,t])=>el('div',{class:'list-row'},
-   el('div',{},el('strong',{class:'small'},p),el('p',{},t.title)),el('button',{class:'ghost',onclick:()=>taskDetails(t)},'Open')))):'',
-  el('p',{class:'micro'},state.error?'Cached from '+fmtTime(state.loadedAt)+'; the last refresh failed.':'Live status checked '+fmtTime(s.checked_at)+'.')),'briefing-widget']}
+// The week so far, and past Monday summaries.
+const fmtDay=d=>new Date(d+'T12:00:00').toLocaleDateString([], {month:'short',day:'numeric'});
+function weekBody(w){
+ if(!w)return el('p',{class:'empty'},'No summary yet.');
+ const T=w.tasks||{},R=w.runs||{};
+ return el('div',{},el('p',{class:'label'},fmtDay(w.week_start)+' to '+fmtDay(w.week_end)),
+  el('div',{class:'briefing'},el('p',{},plural(T.created||0,'task')+' created, '+(T.completed||0)+' done, '+(T.failed||0)+' failed.'),
+   el('p',{},plural(R.total||0,'run')+' on the Mac, '+plural(R.calls_used||0,'model call')+'.'),
+   el('p',{},plural(R.knowledge_written||0,'answer')+' saved to Knowledge, '+plural(w.notes_saved||0,'AI note')+' saved.'),
+   el('p',{},(w.stuck||[]).length?plural(w.stuck.length,'task')+' stuck for 3+ days.':'Nothing stuck.')));
+}
+function summaryDialog(w,title){
+ const by=(w.by_project||[]),bots=(w.by_bot||[]),stuck=(w.stuck||[]);
+ const table=(head,rows)=>el('table',{class:'summary-table'},el('thead',{},el('tr',{},head.map(h=>el('th',{},h)))),el('tbody',{},rows.map(r=>el('tr',{},r.map(c=>el('td',{},String(c)))))));
+ openDialog(title,[weekBody(w),el('h3',{},'By project'),by.length?table(['Project','Created','Done','Open'],by.map(x=>[x.project,x.created,x.completed,x.open])):el('p',{class:'muted'},'No tasks.'),
+  el('h3',{},'By bot'),bots.length?table(['Bot','Open','Done'],bots.map(x=>[x.bot,x.open,x.completed])):el('p',{class:'muted'},'No bot work.'),
+  el('h3',{},'Stuck'),stuck.length?el('div',{},stuck.map(x=>el('p',{class:'small'},x.title+' · '+x.project+' · '+x.who+' · '+plural(x.days,'day')))):el('p',{class:'muted'},'Nothing stuck for 3+ days.')]);
+}
+// Four weeks of activity as a dot grid: one column per week, one dot per day.
+function heatDots(){
+ const day=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x.getTime()},today=day(Date.now()),counts={};
+ for(const t of state.tasks){counts[day(t.created_at)]=(counts[day(t.created_at)]||0)+1;if(t.status==='completed')counts[day(t.updated_at)]=(counts[day(t.updated_at)]||0)+1}
+ const monday=today-((new Date(today).getDay()+6)%7)*86400000,start=monday-21*86400000,cells=[];
+ for(let i=0;i<28;i++){const d=start+i*86400000,n=counts[d]||0,lvl=d>today?'future':n===0?'l0':n<3?'l1':n<6?'l2':'l3';
+  cells.push(el('span',{class:'heat '+lvl+(d===today?' today':''),title:new Date(d).toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})+': '+plural(n,'event')}))}
+ return el('div',{class:'heat-wrap'},el('div',{class:'heat-grid',role:'img','aria-label':'Activity over the last four weeks'},cells),
+  el('div',{class:'heat-legend micro'},el('span',{},'4 weeks ago'),el('span',{class:'row',style:'gap:4px'},'less',['l0','l1','l2','l3'].map(l=>el('span',{class:'heat '+l})),'more')));
+}
+function widgetWeek(){
+ const w=state.week,past=state.summaries;
+ return ['This week',el('div',{},heatDots(),weekBody(w),el('div',{class:'row wrap',style:'margin-top:12px'},
+  w?el('button',{class:'ghost',onclick:()=>summaryDialog(w,'This week so far')},'Details'):'',
+  past.length?el('button',{class:'ghost',onclick:()=>summaryDialog(past[0].data,'Week of '+fmtDay(past[0].week_start))},'Last Monday\'s summary'):'' ),
+  el('p',{class:'micro'},'A full summary is saved every Monday at 7 AM'+(past[0]&&past[0].vault_path?' (last one in your vault at '+past[0].vault_path+')':'')+'.')),'briefing-widget']}
 function usage(){
  const s=state.status,pct=s.daily_call_cap?Math.min(100,Math.round(100*s.used_today/s.daily_call_cap)):0;
  return [el('div',{class:'progress',role:'progressbar','aria-label':'Model calls today','aria-valuemin':'0','aria-valuemax':String(s.daily_call_cap),'aria-valuenow':String(s.used_today)},el('span',{style:'width:'+pct+'%'})),
@@ -583,7 +1197,7 @@ function taskCard(t){
 }
 function newTaskDialog(preset={}){
  const f={title:el('input',{required:true,maxlength:'120',id:'nt-title'}),request:el('textarea',{required:true,rows:'5',maxlength:'8000'}),
-  project:el('select',{},PROJECTS.map(p=>el('option',{},p))),agent:el('input',{value:'Elliot',maxlength:'80'}),
+  project:el('select',{},PROJECTS.map(p=>el('option',{selected:preset.project===p?true:null},p))),agent:el('input',{value:'Elliot',maxlength:'80'}),
   executor:el('select',{id:'nt-executor'},EXECUTORS.map(x=>el('option',{selected:preset.executor===x?true:null},x))),template:el('select',{},Object.entries(TEMPLATE_LABEL).map(([k,l])=>el('option',{value:k},l)))};
  const tplRow=el('label',{},el('span',{},'Template (what the Mac worker may do)'),f.template);
  if(preset.agent)f.agent.value=preset.agent;
@@ -596,7 +1210,7 @@ function newTaskDialog(preset={}){
    $('dialog').close();toast(preset.bot?'Task created for '+preset.bot.name+'.':'Task created.');store.set('tab','open');await load()}catch(x){err.textContent=x.message}finally{b.disabled=false}}},
   el('label',{},el('span',{},'Title'),f.title),el('label',{},el('span',{},'Request'),f.request),
   el('div',{class:'row wrap form-pair'},el('label',{},el('span',{},'Project'),f.project),el('label',{},el('span',{},'Agent'),f.agent),el('label',{},el('span',{},'Run with'),f.executor)),
-  tplRow,el('p',{class:'muted small'},preset.bot?'This task is labelled for '+preset.bot.name+'. Grok is not connected yet, so you hand it over yourself and mark it done here.'
+  tplRow,el('p',{class:'muted small'},preset.bot?'This task is labelled for '+preset.bot.name+'. '+preset.bot.platform+' is not connected yet, so you hand it over yourself and mark it done here.'
    :'Claude tasks run on your Mac worker, read-only, after approval or a standing rule. Other tools are manual handoffs.'),
   err,el('button',{class:'primary',type:'submit'},'Create task'));
  openDialog(preset.bot?'New task for '+preset.bot.name:'New task',form);setTimeout(()=>f.title.focus(),0);
@@ -614,18 +1228,6 @@ function viewReview(){
   el('p',{class:'empty'},'Nothing to review.')];
 }
 
-// Projects
-function viewProjects(){
- return [heading('Projects','Where each project stands.'),el('div',{class:'note-grid'},PROJECTS.filter(p=>p!=='AI OS'||state.tasks.some(t=>t.project===p)).map(p=>{
-  const ts=state.tasks.filter(t=>t.project===p),open=ts.filter(t=>t.status==='queued'),rev=ts.filter(t=>t.status==='awaiting_review');
-  const next=open.slice(-1)[0];
-  return el('section',{class:'note'},el('h2',{},p),el('p',{class:'muted small'},plural(open.length,'open task')+' · '+rev.length+' to review · '+ts.filter(t=>t.status==='completed').length+' done'),
-   next?el('p',{},'Next: '+next.title):el('p',{class:'muted'},'Nothing open.'),
-   el('div',{class:'row wrap'},el('button',{onclick:()=>{store.set('proj',p);store.set('tab','all');location.hash='tasks'}},'Open tasks'),
-    el('button',{class:'ghost',onclick:()=>{store.set('thread',p);stickBottom=true;location.hash='home'}},'Talk to Elliot')));
- }))];
-}
-
 // Bots
 function botPicker(t){
  const cur=botFor(t);
@@ -637,7 +1239,7 @@ function botPicker(t){
 function botCard(b){
  const ts=tasksFor(b),open=ts.filter(t=>t.status==='queued'||t.status==='awaiting_review'),done=ts.length-open.length;
  const choices=state.tasks.filter(t=>assignable(t)&&t.status==='queued'&&!botFor(t));
- const pick=el('select',{class:'thread-select','aria-label':'Task to assign to '+b.name},el('option',{value:''},choices.length?'Pick an open task':'No unassigned Grok or manual tasks'),
+ const pick=el('select',{class:'thread-select','aria-label':'Task to assign to '+b.name},el('option',{value:''},choices.length?'Pick an open task':'No unassigned bot tasks'),
   choices.map(t=>el('option',{value:t.id},t.title+' · '+t.project)));
  return el('section',{class:'note bot'+(b.active?'':' inactive')},
   el('div',{class:'row between wrap'},el('h2',{},b.name),badge(b.connected?'Connected':'Not connected',b.connected?'ok':'')),
@@ -648,7 +1250,7 @@ function botCard(b){
   done?el('p',{class:'micro'},plural(done,'finished task')):'',
   b.active?el('div',{class:'row wrap',style:'margin-top:12px'},pick,
    el('button',{onclick:e=>{if(!pick.value)return pick.focus();const t=taskById(pick.value);act(e.currentTarget,()=>assignBot(t,b.id),'Assigned to '+b.name+'.')}},'Assign'),
-   el('button',{class:'primary',onclick:()=>newTaskDialog({executor:'Grok',agent:b.name,bot:b})},icon('i-plus'),'New task')):'',
+   el('button',{class:'primary',onclick:()=>newTaskDialog({executor:botExecutor(b),agent:b.name,bot:b})},icon('i-plus'),'New task')):'',
   el('div',{class:'row wrap',style:'margin-top:8px'},el('button',{class:'ghost',onclick:e=>act(e.currentTarget,
    ()=>http('/rest/v1/ai_os_bots?id=eq.'+encodeURIComponent(b.id),{method:'PATCH',body:{active:!b.active},prefer:'return=minimal'}),b.active?b.name+' hidden.':b.name+' is back.')},b.active?'Hide bot':'Show bot')));
 }
@@ -667,11 +1269,38 @@ function viewBots(){
  const showHidden=!!store.get('hidden-bots',false),hidden=state.bots.filter(b=>!b.active).length;
  const list=state.bots.filter(b=>b.active||showHidden);
  const unassigned=state.tasks.filter(t=>assignable(t)&&t.status==='queued'&&!botFor(t)).length;
- return [heading('Bots','Assign your Grok bots to tasks. Grok is not connected yet, so an assignment is a label: you hand the work over yourself.',
+ return [heading('Bots','Assign your bots to tasks and set their routines. Grok and ChatGPT are not connected yet, so an assignment is a label: you hand the work over yourself.',
    el('button',{class:'primary',onclick:addBotDialog},icon('i-plus'),'Add bot')),
-  el('p',{class:'muted small'},plural(state.bots.filter(b=>b.active).length,'bot')+' · '+plural(state.assignments.length,'assigned task')+' · '+plural(unassigned,'open Grok or manual task')+' without a bot'),
+  el('p',{class:'muted small'},plural(state.bots.filter(b=>b.active).length,'bot')+' · '+plural(state.assignments.length,'assigned task')+' · '+plural(unassigned,'open bot task')+' without a bot'),
   list.length?el('div',{class:'note-grid bot-grid'},list.map(botCard)):el('p',{class:'empty'},'No bots yet. Add one to start assigning tasks.'),
-  hidden?el('button',{class:'ghost',style:'margin-top:16px',onclick:()=>{store.set('hidden-bots',!showHidden);render()}},showHidden?'Hide hidden bots':'Show '+plural(hidden,'hidden bot')):''];
+  hidden?el('button',{class:'ghost',style:'margin-top:16px',onclick:()=>{store.set('hidden-bots',!showHidden);render()}},showHidden?'Hide hidden bots':'Show '+plural(hidden,'hidden bot')):'',
+  el('section',{class:'panel routines-panel',id:'routines'},el('div',{class:'row between wrap'},el('div',{},el('h2',{},'Routines'),
+    el('p',{class:'muted small'},'Each switch creates a task on its schedule ('+(state.status.timezone||'local time')+'). Bot routines are labels until that bot is connected.')),
+   el('button',{onclick:newRoutineDialog},icon('i-plus'),'New routine')),
+   state.routines.length?el('div',{},state.routines.map(routineRow)):el('p',{class:'empty'},'No routines yet.'))];
+}
+function newRoutineDialog(){
+ const f={name:el('input',{required:true,maxlength:'80'}),request:el('textarea',{required:true,rows:'4',maxlength:'8000'}),
+  project:el('select',{},PROJECTS.map(p=>el('option',{},p))),
+  who:el('select',{},el('option',{value:''},'Elliot on the Mac (read-only)'),state.bots.filter(b=>b.active).map(b=>el('option',{value:b.id},b.name+' · '+b.platform))),
+  template:el('select',{},Object.entries(TEMPLATE_LABEL).map(([k,l])=>el('option',{value:k},l))),
+  time:el('input',{type:'time',value:'09:00',required:true})};
+ const days=el('div',{class:'day-picker',role:'group','aria-label':'Days'},DAY_NAMES.map((d,i)=>el('label',{class:'day'},el('input',{type:'checkbox',value:String(i+1),checked:i<5?true:null}),el('span',{},d))));
+ const tplRow=el('label',{},el('span',{},'What Elliot may do'),f.template);
+ f.who.addEventListener('change',()=>tplRow.hidden=!!f.who.value);
+ const err=el('p',{class:'small err',role:'alert'});
+ const form=el('form',{onsubmit:async e=>{e.preventDefault();const b=form.querySelector('[type=submit]');
+  const picked=[...days.querySelectorAll('input:checked')].map(x=>+x.value);if(!picked.length){err.textContent='Pick at least one day.';return}
+  const bot=state.bots.find(x=>x.id===f.who.value),[h,m]=f.time.value.split(':').map(Number);b.disabled=true;
+  try{await http('/rest/v1/ai_os_routines',{method:'POST',prefer:'return=minimal',body:{owner_user_id:session.user.id,name:f.name.value.trim(),project:f.project.value,
+    executor:bot?botExecutor(bot):'Claude',template:bot?null:f.template.value,bot_id:bot?bot.id:null,request:f.request.value.trim(),days:picked,hour:h,minute:m||0}});
+   $('dialog').close();toast('Routine added. It starts switched off; turn it on when you are ready.');await load()}catch(x){err.textContent=x.message}finally{b.disabled=false}}},
+  el('label',{},el('span',{},'Name'),f.name),el('label',{},el('span',{},'What should happen each time'),f.request),
+  el('div',{class:'row wrap form-pair'},el('label',{},el('span',{},'Project'),f.project),el('label',{},el('span',{},'Who does it'),f.who)),tplRow,
+  el('div',{class:'row wrap form-pair'},el('div',{},el('span',{class:'muted small'},'Days'),days),el('label',{},el('span',{},'Time'),f.time)),
+  el('p',{class:'muted small'},'A routine only creates the task. Elliot tasks still need your approval or a standing rule to run.'),err,
+  el('button',{class:'primary',type:'submit'},'Add routine'));
+ openDialog('New routine',form);setTimeout(()=>f.name.focus(),0);
 }
 
 // Control
@@ -698,10 +1327,125 @@ function viewControl(){
     el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},'Flatter look'),el('p',{},'Less glow and gradient, same palette.')),
      el('button',{'aria-pressed':String(flat),onclick:()=>{store.set('flat',!flat);render()}},flat?'On':'Off')),
     el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},'Stay signed in'),el('p',{},remembered()?'This browser keeps your session until you sign out.':'Your session ends when you close this tab.'))),
-    el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},'Home layout'),el('p',{},'Put the widgets back in their original order.')),
-     el('button',{onclick:()=>{store.del('widgets');toast('Layout reset.')}},'Reset')),
+    el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},'Home layout'),el('p',{},'Put the Home widgets back in their original order and size.')),
+     el('button',{onclick:()=>{store.del('home-layout');toast('Layout reset.')}},'Reset')),
     el('button',{style:'margin-top:12px',onclick:signOut},'Sign out'))),
-  el('section',{class:'panel',style:'margin-top:24px'},el('h2',{},'Recent runs'),runs)];
+  el('section',{class:'panel',style:'margin-top:24px'},el('div',{class:'row between wrap'},el('h2',{},'Recent runs'),el('a',{href:'#audit',class:'button-link',id:'open-audit'},'Open the audit log')),runs)];
+}
+
+
+// ---------- Home features: quick actions, goals, usage rings, audit ----------
+// Three rings: Claude counts Agent OS model calls against the daily cap. Grok and ChatGPT have no
+// connection yet, so their rings stay empty and say so instead of guessing.
+function usageRings(){
+ const s=state.status,today=new Date().toDateString();
+ const handoffs=x=>state.tasks.filter(t=>t.executor===x&&new Date(t.created_at).toDateString()===today).length;
+ const R=[['Claude',s.used_today,s.daily_call_cap,'#d6be7a',s.used_today+' of '+s.daily_call_cap],
+  ['Grok',0,0,'#9fc3d9','Not connected'+(handoffs('Grok')?' · '+plural(handoffs('Grok'),'handoff'):'')],
+  ['ChatGPT',0,0,'#a9d8b2','Not connected'+(handoffs('ChatGPT')?' · '+plural(handoffs('ChatGPT'),'handoff'):'')]];
+ return el('div',{class:'usage-rings',role:'list','aria-label':'Usage today'},R.map(([name,v,max,color,text])=>
+  el('div',{class:'urow'+(max?'':' off'),role:'listitem'},ring(v,max||1,{size:30,stroke:4,color,label:name+': '+text}),
+   el('span',{},el('strong',{},name),el('span',{class:'micro'},text)))));
+}
+
+// Dialogs refresh in place after a change, but never reopen once you have closed them.
+const stillOpen=()=>$('dialog').open;
+// Quick actions: saved read-only requests to Elliot, one tap each.
+function runQuick(q,btn){
+ const on=state.status.rules[q.template];
+ return act(btn,async()=>{await createTask({title:q.label,project:q.project,agent:'Elliot',executor:'Claude',template:q.template,request:q.request});store.set('thread',q.project)},
+  on?q.label+' sent. Your rule is on, so the Mac runs it.':q.label+' sent. Approve it to let the Mac run it.');
+}
+function widgetQuick(){
+ if(!state.quick)return ['Quick actions',el('p',{class:'muted small'},'Quick actions arrive with the next database update.'),'quick-widget'];
+ return ['Quick actions',el('div',{class:'quick-grid'},
+  state.quick.map(q=>el('button',{class:'quick-btn glow',onclick:e=>runQuick(q,e.currentTarget),'aria-label':'Run '+q.label},el('strong',{},q.label),el('span',{class:'micro'},q.project+' · '+(TEMPLATE_LABEL[q.template]||q.template)))),
+  el('button',{class:'quick-btn quick-edit',id:'edit-quick',onclick:quickDialog},icon('i-plus'),state.quick.length?'Edit':'Add one')),'quick-widget'];
+}
+function quickDialog(){
+ const f={label:el('input',{required:true,maxlength:'40',id:'qa-label'}),request:el('textarea',{required:true,rows:'3',maxlength:'2000',id:'qa-request'}),
+  project:el('select',{id:'qa-project'},PROJECTS.map(p=>el('option',{},p))),template:el('select',{id:'qa-template'},Object.entries(TEMPLATE_LABEL).map(([k,l])=>el('option',{value:k},l)))};
+ const err=el('p',{class:'small',role:'alert'});
+ const list=el('div',{},(state.quick||[]).map(q=>el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},q.label),el('p',{},q.request)),
+  el('button',{class:'ghost','aria-label':'Delete '+q.label,onclick:e=>act(e.currentTarget,async()=>{await http('/rest/v1/ai_os_quick_actions?id=eq.'+q.id,{method:'DELETE'});await load();stillOpen()&&quickDialog()},'Removed '+q.label+'.')},'Delete'))));
+ const form=el('form',{onsubmit:async e=>{e.preventDefault();const b=form.querySelector('[type=submit]');b.disabled=true;
+  try{await http('/rest/v1/ai_os_quick_actions',{method:'POST',prefer:'return=minimal',body:{owner_user_id:session.user.id,label:f.label.value.trim(),request:f.request.value.trim(),
+    project:f.project.value,template:f.template.value,position:Math.min(99,(state.quick||[]).length)}});
+   toast('Added '+f.label.value.trim()+'.');await load();stillOpen()&&quickDialog()}catch(x){err.textContent=x.message}finally{b.disabled=false}}},
+  el('h3',{style:'margin:16px 0 8px'},'Add a quick action'),
+  el('label',{},el('span',{},'Button label'),f.label),el('label',{},el('span',{},'What to ask Elliot'),f.request),
+  el('div',{class:'row wrap form-pair'},el('label',{},el('span',{},'Project'),f.project),el('label',{},el('span',{},'Template'),f.template)),
+  err,el('button',{class:'primary',type:'submit'},'Add'));
+ openDialog('Quick actions',[el('p',{class:'muted small'},'Each button sends a read-only request to Elliot. It still needs your approval or a standing rule to run.'),list,form]);
+}
+
+// Project goals: one goal per project with an optional date, plus milestones that fill its bar.
+const goalOf=p=>(state.goals||[]).find(g=>g.project===p);
+const milestonesOf=p=>(state.milestones||[]).filter(m=>m.project===p);
+function daysLeft(d){if(!d)return '';const n=Math.ceil((new Date(d+'T23:59:59')-Date.now())/864e5);
+ return n<0?plural(-n,'day')+' late':n===0?'due today':plural(n,'day')+' left'}
+function goalBlock(p){
+ if(!state.goals)return '';
+ const g=goalOf(p);
+ if(!g)return el('button',{class:'ghost small-btn goal-add',onclick:()=>goalDialog(p)},icon('i-plus'),'Set a goal');
+ const ms=milestonesOf(p),done=ms.filter(m=>m.done_at).length,late=g.due_on&&new Date(g.due_on+'T23:59:59')<Date.now();
+ return el('button',{class:'goal'+(late?' late':''),onclick:()=>goalDialog(p),'aria-label':'Goal for '+p+': '+g.goal},
+  el('span',{class:'goal-text'},el('strong',{},g.goal),el('span',{class:'micro'},[ms.length?done+' of '+ms.length+' milestones':'No milestones yet',daysLeft(g.due_on)].filter(Boolean).join(' · '))),
+  ms.length?el('span',{class:'goal-bar','aria-hidden':'true'},el('span',{style:'width:'+Math.round(100*done/ms.length)+'%'})):'');
+}
+function goalDialog(p){
+ const g=goalOf(p),ms=milestonesOf(p);
+ const goal=el('input',{required:true,maxlength:'200',id:'goal-text',value:g?g.goal:''}),due=el('input',{type:'date',id:'goal-due',value:g&&g.due_on||''});
+ const err=el('p',{class:'small',role:'alert'});
+ const q='?owner_user_id=eq.'+session.user.id+'&project=eq.'+encodeURIComponent(p);
+ const save=el('form',{onsubmit:async e=>{e.preventDefault();const b=save.querySelector('[type=submit]');b.disabled=true;
+  try{const body={goal:goal.value.trim(),due_on:due.value||null};
+   if(g)await http('/rest/v1/ai_os_project_goals'+q,{method:'PATCH',body:{...body,updated_at:new Date().toISOString()},prefer:'return=minimal'});
+   else await http('/rest/v1/ai_os_project_goals',{method:'POST',body:{owner_user_id:session.user.id,project:p,...body},prefer:'return=minimal'});
+   toast('Goal saved.');await load();stillOpen()&&goalDialog(p)}catch(x){err.textContent=x.message}finally{b.disabled=false}}},
+  el('label',{},el('span',{},'Goal'),goal),el('label',{},el('span',{},'Target date (optional)'),due),err,
+  el('div',{class:'row wrap'},el('button',{class:'primary',type:'submit'},g?'Save goal':'Set goal'),
+   g?el('button',{type:'button',class:'ghost',onclick:e=>{if(confirm('Remove the '+p+' goal and its milestones?'))act(e.currentTarget,async()=>{await http('/rest/v1/ai_os_project_goals'+q,{method:'DELETE'});$('dialog').close()},'Goal removed.')}},'Remove goal'):''));
+ const msList=g?el('div',{},el('h3',{style:'margin:20px 0 4px'},'Milestones'),
+  ms.length?ms.map(m=>el('div',{class:'list-row milestone'},
+   el('label',{class:'check'},el('input',{type:'checkbox',checked:m.done_at?true:null,'aria-label':'Done: '+m.title,onchange:e=>act(null,async()=>{
+     await http('/rest/v1/ai_os_goal_milestones?id=eq.'+m.id,{method:'PATCH',body:{done_at:e.target.checked?new Date().toISOString():null},prefer:'return=minimal'});await load();stillOpen()&&goalDialog(p)})}),
+    el('span',{},m.title,m.due_on?el('span',{class:'micro'},' · '+daysLeft(m.due_on)):'')),
+   el('button',{class:'ghost','aria-label':'Delete milestone '+m.title,onclick:e=>act(e.currentTarget,async()=>{await http('/rest/v1/ai_os_goal_milestones?id=eq.'+m.id,{method:'DELETE'});await load();stillOpen()&&goalDialog(p)})},'Delete'))):el('p',{class:'muted small'},'Break the goal into steps.'),
+  msForm(p,ms.length)):el('p',{class:'muted small'},'Set the goal first, then add milestones.');
+ openDialog(p+' goal',[save,msList]);setTimeout(()=>goal.focus(),0);
+}
+function msForm(p,n){
+ const title=el('input',{required:true,maxlength:'120',id:'ms-title',placeholder:'Next milestone'}),due=el('input',{type:'date','aria-label':'Milestone date'});
+ const f=el('form',{class:'row wrap ms-form',onsubmit:async e=>{e.preventDefault();
+  await act(f.querySelector('[type=submit]'),()=>http('/rest/v1/ai_os_goal_milestones',{method:'POST',prefer:'return=minimal',body:{owner_user_id:session.user.id,project:p,title:title.value.trim(),due_on:due.value||null,position:Math.min(99,n)}}));
+  stillOpen()&&goalDialog(p)}},title,due,el('button',{type:'submit'},icon('i-plus'),'Add'));
+ return f;
+}
+
+// Audit log: everything AI and you did, newest first. The database only appends; nothing here can edit it.
+let auditLoading=false;
+async function loadAudit(){if(auditLoading)return;auditLoading=true;
+ try{state.audit=await http('/rest/v1/ai_os_audit?select=id,at,actor,kind,subject,detail&order=at.desc,id.desc&limit=300')}
+ catch(err){if(!err.signedOut)state.audit={error:err.message}}
+ auditLoading=false;render()}
+const AUDIT_FILTERS=[['all','Everything'],['You','You'],['Mac worker','Mac worker'],['Clock','Clock']];
+function viewAudit(){
+ if(state.audit===undefined)loadAudit();
+ const f=store.get('audit-filter','all'),q=(store.get('audit-q','')||'').toLowerCase();
+ const head=heading('Audit log','Every approval, run, file written and setting change, in order. Nobody can edit or delete it.',el('a',{href:'#control',class:'button-link'},'Back to Control'));
+ if(!state.audit)return [head,el('p',{class:'empty'},'Loading…')];
+ if(state.audit.error)return [head,el('p',{class:'notice'},'The audit log is not available yet: '+state.audit.error)];
+ const rows=state.audit.filter(a=>(f==='all'||a.actor===f)&&(!q||(a.kind+' '+a.subject).toLowerCase().includes(q)));
+ const search=el('input',{type:'search',id:'audit-q',placeholder:'Filter by what happened','aria-label':'Filter the audit log',value:store.get('audit-q','')});
+ search.addEventListener('input',()=>{store.set('audit-q',search.value);render()});
+ const open=a=>{const t=a.detail&&a.detail.task_id&&taskById(a.detail.task_id);return t?el('button',{class:'ghost small-btn',onclick:()=>taskDetails(t)},'Open'):''};
+ return [head,
+  el('div',{class:'row wrap audit-tools'},el('div',{class:'filter-bar',role:'group','aria-label':'Who'},AUDIT_FILTERS.map(([k,l])=>
+   el('button',{class:'chip filter'+(f===k?' active':''),'data-audit':k,'aria-pressed':String(f===k),onclick:()=>{store.set('audit-filter',k);render()}},l))),search),
+  el('section',{class:'panel'},rows.length?el('ol',{class:'audit-list'},rows.map(a=>el('li',{class:'audit-row actor-'+a.actor.replace(/\s/g,'-').toLowerCase()},
+   el('span',{class:'audit-when'},fmtWhen(a.at)),el('span',{class:'badge'},a.actor),
+   el('span',{class:'audit-what'},el('strong',{},a.kind),' ',a.subject),open(a)))):el('p',{class:'empty'},'Nothing matches.'))];
 }
 
 // ---------- voice input (optional) ----------
@@ -751,14 +1495,22 @@ $('search-button').addEventListener('click',openSearch);
 $('close-dialog').addEventListener('click',()=>$('dialog').close());
 document.addEventListener('keydown',e=>{
  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'&&session){e.preventDefault();openSearch()}
+ if(e.key==='/'&&view==='home'&&$('quick-ask')&&!$('dialog').open&&!/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){e.preventDefault();$('quick-ask').focus()}
  if(e.key==='Escape'&&document.body.classList.contains('focus-mode')&&!$('dialog').open){document.body.classList.remove('focus-mode');render()}
+ if(e.key==='Escape'&&editing&&!$('dialog').open)setEditing(false);
 });
+// A soft light follows the pointer across cards on desktop.
+$('view').addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.glow');if(!c||e.pointerType!=='mouse')return;
+ const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')});
 $('remember').checked=remembered();
 (async()=>{
  const token=store.get('refresh',null);
  if(token&&remembered()){try{await refreshSession(token);await enter();return}catch{store.del('refresh')}}
  $('signin').hidden=false;
 })();
+
+// Home Screen app: cache the page so it opens offline and shows the last data with a notice.
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 </script>
 </body>
