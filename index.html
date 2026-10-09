@@ -121,6 +121,15 @@ dialog pre{font-family:inherit}
 .pc-empty{padding:4px 0}
 .quiet{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.quiet .chip{gap:8px;padding:4px 12px}
 .hue-dot{width:8px;height:8px;border-radius:50%;background:var(--hue)}
+.tag-chip{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:99px;border:1px solid #ffffff1f;background:#ffffff0a;color:inherit;font:inherit;font-size:12px;min-height:24px}
+button.tag-chip{cursor:pointer}.msg-tag{margin-bottom:6px}
+.thread-filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}.thread-filters .chip{flex:none}
+.tiles.big-actions{grid-template-columns:repeat(3,1fr)}.big-actions .tile{min-height:96px}.big-actions .tile-num{font-size:30px}
+.scope.essentials{margin:10px 0}
+.brain input[type=search]{width:100%;margin-bottom:12px}
+.brain-tree{display:grid;gap:2px}.folder summary{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;list-style:none}
+.folder summary::-webkit-details-marker{display:none}.folder-name{flex:1;font-weight:600}.folder-body{padding-left:18px;border-left:1px solid #ffffff14;margin-left:9px}
+.note-link{display:flex;align-items:center;gap:10px;min-height:44px;color:inherit;text-decoration:none;overflow-wrap:anywhere}.note-link:hover{color:var(--accent)}
 .lineup{padding:20px 22px}
 .lineup-row{display:flex;gap:6px;overflow-x:auto;padding:14px 2px 4px;scrollbar-width:thin;scroll-snap-type:x proximity}
 .lineup-bot{flex-direction:column;border:0;border-radius:16px;padding:8px 6px;min-width:84px;max-width:84px;gap:6px;scroll-snap-align:start;transition:transform .18s,background .18s}
@@ -153,7 +162,7 @@ dialog pre{font-family:inherit}
 .summary-table{width:100%;border-collapse:collapse;font-size:13px}.summary-table th,.summary-table td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}.summary-table th{color:var(--muted);font-weight:500}
 .chat-page .elliot .conversation{height:max(360px,calc(100dvh - 330px))}
 .flat .tile.hot{background:var(--surface)}.flat .hero:before,.flat .glow:after{display:none}.flat .project-card{background:var(--surface)}
-@media(max-width:1050px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1050px){.tiles{grid-template-columns:repeat(2,1fr)}.tiles.big-actions{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:700px){.hero{grid-template-columns:1fr;padding:20px;gap:18px}.hero h1{font-size:25px}.hero-orb{width:46px;height:46px}.hero-line{font-size:16px}
  .hero-gauge{grid-template-columns:auto 1fr;justify-items:start;text-align:left;column-gap:14px;align-items:center}.hero-gauge .gauge-ring{grid-row:1/3;width:84px;height:84px}
  .hero-gauge .ring{width:84px;height:84px}.gauge-text strong{font-size:22px}
@@ -205,8 +214,8 @@ dialog pre{font-family:inherit}
  .circle-link{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);color:var(--text)}
  .mobile-nav{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));border:1px solid #ffffff1a;border-radius:28px;background:#0b1d16e6;backdrop-filter:blur(16px);
   padding:6px;box-shadow:0 12px 40px #000a;justify-content:space-between;align-items:center}
- .mobile-nav a{min-width:0;flex:1;font-size:10px}.mobile-nav a[href="#control"]{display:none}
- .mobile-nav a[href="#home"]{order:1}.mobile-nav a[href="#tasks"]{order:2}.mobile-nav a[href="#chat"]{order:3}.mobile-nav a[href="#review"]{order:4}.mobile-nav a[href="#bots"]{order:5}
+ .mobile-nav a{min-width:0;flex:1;font-size:10px}.mobile-nav a[href="#control"],.mobile-nav a[href="#bots"]{display:none}
+ .mobile-nav a[href="#home"]{order:1}.mobile-nav a[href="#brain"]{order:2}.mobile-nav a[href="#chat"]{order:3}.mobile-nav a[href="#tasks"]{order:4}.mobile-nav a[href="#review"]{order:5}
  .mobile-nav a[href="#chat"]{flex:none;width:58px;height:58px;min-height:58px;border-radius:50%;margin:-22px 4px 0;background:radial-gradient(circle at 35% 25%,#f0dca0,#d6be7a 45%,#9c8442);color:var(--ink);
   box-shadow:0 8px 24px #d6be7a55,0 0 0 4px #0b1d16}
  .mobile-nav a[href="#chat"] span:not(.count){display:none}.mobile-nav a[href="#chat"] .icon{width:24px;height:24px}
@@ -262,6 +271,56 @@ body.editing-home .mobile-nav{opacity:.35;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.stuck-badge{animation:none}}
 .pins{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:6px}.pin{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 6px 8px 12px;border:1px solid var(--line);border-radius:12px;background:#0e261b;font-size:14px;overflow-wrap:anywhere}
 .pin-add{margin-top:12px;gap:8px}.pin-add input{flex:1;min-width:0}
+
+/* Automations tile: futuristic Forest Studio (approved Oct 9; reference design/Automations-Tile-Futuristic.html). */
+.auto-tile{position:relative;overflow:hidden;border-radius:24px;padding:20px;height:100%;
+ background:linear-gradient(160deg,#173326cc,#0e221acc);border:1px solid #ffffff14;backdrop-filter:blur(10px);
+ box-shadow:inset 0 1px 0 #ffffff12,0 0 0 1px #d6be7a10;--mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+.auto-tile:before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.35;
+ background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:22px 22px;
+ -webkit-mask-image:linear-gradient(180deg,transparent,#000 60%);mask-image:linear-gradient(180deg,transparent,#000 60%)}
+.auto-tile:after{content:'';position:absolute;left:0;right:0;height:80px;top:-80px;pointer-events:none;background:linear-gradient(180deg,transparent,#9fd3a914,transparent);animation:auto-scan 5s linear infinite}
+@keyframes auto-scan{to{top:100%}}
+.auto-head{display:flex;align-items:center;gap:12px;position:relative}.auto-head h2{margin:0;font-size:18px}
+.auto-core{position:relative;width:44px;height:44px;flex:none}
+.auto-core span{position:absolute;border-radius:50%}
+.auto-core .o1{inset:2px;border:1.5px dashed #9fd3a980;animation:auto-spin 8s linear infinite}
+.auto-core .o2{inset:7px;border:1.2px dashed #d6be7a99;animation:auto-spin 5s linear infinite reverse}
+.auto-core .heart{inset:15px;background:#9fd3a9;box-shadow:0 0 12px #9fd3a9,0 0 28px #9fd3a966;animation:auto-beat 1.8s ease-in-out infinite}
+.auto-core.calm .heart{background:#e7c46f;box-shadow:0 0 10px #e7c46f88}
+@keyframes auto-spin{to{transform:rotate(360deg)}}@keyframes auto-beat{50%{transform:scale(.7)}}
+.auto-status{margin:0;font:500 12px var(--mono)}.auto-status.ok{color:#9fd3a9}.auto-status.warn{color:#e7c46f}.auto-status.idle{color:var(--muted)}
+.auto-chip{margin-left:auto;font:600 11px var(--mono);letter-spacing:.08em;color:var(--accent);border:1px solid #d6be7a55;border-radius:99px;padding:4px 10px;background:#d6be7a12;white-space:nowrap}
+.auto-stream{position:relative;margin:16px 0 6px;height:58px}.auto-stream svg{width:100%;height:100%;overflow:visible}
+.auto-stream .path{fill:none;stroke:var(--line);stroke-width:1.5}
+.auto-stream .glow{fill:none;stroke:#d6be7a;stroke-width:2;stroke-linecap:round;stroke-dasharray:8 120;animation:auto-flow 2.2s linear infinite;filter:drop-shadow(0 0 4px #d6be7a)}
+.auto-stream .g2{stroke:#9fd3a9;animation-delay:-.7s;filter:drop-shadow(0 0 4px #9fd3a9)}.auto-stream .g3{stroke:#8fb4e3;animation-delay:-1.4s;filter:drop-shadow(0 0 4px #8fb4e3)}
+.auto-stream.paused .glow{animation-play-state:paused;opacity:.35}
+@keyframes auto-flow{from{stroke-dashoffset:128}to{stroke-dashoffset:0}}
+.auto-stream .node{position:absolute;font:600 10px var(--mono);letter-spacing:.06em;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:3px 7px;transform:translateY(-50%)}
+.auto-stream .n1{left:0;top:18%}.auto-stream .n2{left:0;top:82%}.auto-stream .n3{right:0;top:50%;color:var(--text);border-color:#d6be7a66;box-shadow:0 0 14px #d6be7a33}
+.auto-rows{display:grid;gap:8px;position:relative;margin-top:10px}
+.auto-row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:18px;background:#0b1d16b3;border:1px solid #ffffff0d}
+.auto-row.ok{color:#9fd3a9}.auto-row.warn{color:#e7c46f}.auto-row.idle{color:var(--muted)}
+.auto-ring{width:40px;height:40px}.auto-ring circle{fill:none;stroke-width:3}.auto-ring .track{stroke:#ffffff12}.auto-ring .ticks{stroke:#ffffff26;stroke-dasharray:1 5.28}
+.auto-ring .arc{stroke:currentColor;stroke-linecap:round;stroke-dasharray:107;transform:rotate(-90deg);transform-origin:center;filter:drop-shadow(0 0 3px currentColor);
+ animation:auto-fill var(--d,60s) linear forwards}
+@keyframes auto-fill{from{stroke-dashoffset:var(--from,107)}to{stroke-dashoffset:0}}
+.auto-ring.idle{display:block;border-radius:50%;border:3px dashed #ffffff1f;box-sizing:border-box}
+.auto-row.warn .arc{animation:none;stroke-dashoffset:0}
+.auto-text{min-width:0}.auto-text strong{display:block;color:var(--text);font-size:15px}
+.auto-text p{margin:0;font:12px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.auto-pill{font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;border-radius:99px;padding:4px 9px;border:1px solid currentColor;background:color-mix(in srgb,currentColor 10%,transparent);white-space:nowrap}
+.auto-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;margin-top:16px;position:relative}
+.auto-bars{display:flex;gap:4px;align-items:flex-end;height:34px}
+.auto-bars i{flex:1;border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,var(--accent),#d6be7a33);transform-origin:bottom;animation:auto-grow 2.8s ease-in-out infinite alternate}
+.auto-bars i:last-child{background:linear-gradient(180deg,#9fd3a9,#9fd3a933);box-shadow:0 0 10px #9fd3a955}
+@keyframes auto-grow{from{transform:scaleY(.6)}to{transform:scaleY(1)}}
+.auto-days{display:flex;gap:4px;font:10px var(--mono);color:var(--muted);opacity:.7;margin-top:4px}.auto-days span{flex:1;text-align:center}
+.auto-stat{text-align:right;display:grid}.auto-stat b{font:600 26px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--text);text-shadow:0 0 18px #d6be7a44}
+.auto-stat span{font:11px var(--mono);color:var(--muted)}
+.flat .auto-tile{background:var(--surface);backdrop-filter:none}.flat .auto-tile:before,.flat .auto-tile:after{display:none}
+@media(prefers-reduced-motion:reduce){.auto-tile:after{display:none}.auto-tile *{animation:none!important}.auto-ring .arc{stroke-dashoffset:var(--from,107)}}
 </style>
 </head>
 <body>
@@ -269,7 +328,7 @@ body.editing-home .mobile-nav{opacity:.35;pointer-events:none}
 
 <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></symbol><symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-2 2V11a9 9 0 0 1 19 0Z"/></symbol><symbol id="i-tasks" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 11 3 3 5-6"/></symbol><symbol id="i-brain" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="m10 8-4 6m8-6 4 6M8 17h8"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 5h7l2 3h9v12H3Z"/></symbol><symbol id="i-agents" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M4 3h12l4 4v14H4Z"/><path d="M8 10h8m-8 4h8m-8 4h5"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 8v8m6-8v8"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2m-7 9v3m-4 0h8"/></symbol><symbol id="i-send" viewBox="0 0 24 24"><path d="m3 3 18 9-18 9 3-9Zm3 9h15"/></symbol><symbol id="i-expand" viewBox="0 0 24 24"><path d="M3 9V3h6m6 0h6v6m0 6v6h-6m-6 0H3v-6"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="8" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></symbol><symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
 
-<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol><symbol id="i-bot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5M3 12v3M21 12v3"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol><symbol id="i-bot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5M3 12v3M21 12v3"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-brain" viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a2 2 0 0 0-3-1ZM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol><symbol id="i-note" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/></symbol>
 </defs></svg>
 
 <section id="signin" class="signin" hidden aria-labelledby="signin-title">
@@ -310,7 +369,25 @@ body.editing-home .mobile-nav{opacity:.35;pointer-events:none}
 // nothing here can bypass them. No service-role key, model key or password is stored.
 const BASE='https://fchitebejupdcpdartrk.supabase.co';
 const KEY='sb_publishable_8ajbWJ7jClszIPQSgt8_jw__9v31eqi';
-const PROJECTS=['Agent OS','Insight','Roblox','Growth','Markets','Repo Watch','Team','AI OS'];
+const PROJECTS=['Agent OS','Insight','Roblox','Growth','Markets','Repo Watch','Team'];
+// AI OS was merged into Agent OS on Oct 9; older tasks keep the old name in the database.
+const projOf=t=>t.project==='AI OS'?'Agent OS':t.project;
+// Elliot's one thread tags each message with a project from the words in it (Will can change the tag
+// before sending). This is plain keyword matching with no model call; local triage replaces it later.
+const PROJECT_WORDS={'Insight':['insight','wellness','testflight','app store','oura','sleep ring','macro','workout','rep','barcode','posthog','sentry'],
+ 'Roblox':['roblox','bee','tycoon','game','swarm'],'Growth':['growth','tiktok','content','post','posts','waitlist','marketing','caption','video'],
+ 'Markets':['market','markets','coin','coins','memecoin','crypto','token','fomo','flip','watchlist'],
+ 'Repo Watch':['repo','repos','github','skill','skills','library','tool'],'Team':['team','bot','bots','grok','quinn','jordan','riley','drew','casey','rowan','rory','finn'],
+ 'Agent OS':['agent os','ai os','elliot','worker','dashboard','vault','obsidian','hermes','approval','approvals','routine','brief']};
+function guessProject(text){
+ const words=' '+String(text).toLowerCase().replace(/[^a-z0-9 ]+/g,' ')+' ';
+ let best=null,score=0;
+ for(const [p,list] of Object.entries(PROJECT_WORDS)){
+  const n=list.filter(w=>words.includes(' '+w+' ')).length+(words.includes(' '+p.toLowerCase()+' ')?2:0);
+  if(n>score){best=p;score=n}
+ }
+ return best;
+}
 const EXECUTORS=['Claude','ChatGPT','Codex','Grok','Manual'];
 const ASK_TEMPLATES=[['research','Ask'],['read','Read a note'],['summarize','Summarize'],['draft','Draft']];
 const TEMPLATE_LABEL={read:'Read a note',summarize:'Summarize notes',research:'Research the vault',draft:'Draft text'};
@@ -318,7 +395,7 @@ const ERROR_TEXT={model_limit:'Hit the Claude subscription limit',model_error:'T
  tool_violation:'Tried a tool it was not allowed',invalid_output:'Returned an unusable answer',authorization_lost:'Stopped because its approval ended',
  stopped:'Stopped by pause',worker_error:'The Mac worker hit an error',stale:'The worker stopped before returning'};
 const CANCELLED='Cancelled from the dashboard';
-const VIEWS=[['home','Home','i-home'],['chat','Elliot','i-chat'],['tasks','Tasks','i-tasks'],['review','Review','i-review'],['bots','Bots','i-bot'],['control','Control','i-settings']];
+const VIEWS=[['home','Home','i-home'],['chat','Elliot','i-chat'],['brain','Brain','i-brain'],['tasks','Tasks','i-tasks'],['review','Review','i-review'],['bots','Bots','i-bot'],['control','Control','i-settings']];
 
 // ---------- small helpers ----------
 const $=id=>document.getElementById(id);
@@ -398,7 +475,7 @@ async function enter(){
  const owners=await http('/rest/v1/ai_os_owners?select=user_id');
  if(!owners||!owners.length){await signOut();$('signin-error').textContent='That account is not the Agent OS owner.';return}
  $('signin').hidden=true;$('app').hidden=false;$('mobile-nav').hidden=false;
- const tps=await http('/rest/v1/ai_os_task_templates?select=key,label,instructions,tools,max_model_calls,max_turns,timeout_seconds');
+ const tps=await http('/rest/v1/ai_os_task_templates?select=key,label,instructions,tools,max_model_calls,max_turns,timeout_seconds,writes');
  state.templates=Object.fromEntries(tps.map(t=>[t.key,t]));
  await load();startPolling();route();
 }
@@ -424,13 +501,15 @@ async function load(){
   ]);
   // Quick actions and goals arrive with the Home features update; until then those widgets explain that.
   const soft=q=>http(q).catch(err=>{if(err.signedOut)throw err;return null});
-  const [quick,goals,milestones,pinned,learnings]=await Promise.all([
+  const [quick,goals,milestones,pinned,learnings,vaultTree,automations]=await Promise.all([
    soft('/rest/v1/ai_os_quick_actions?select=id,label,request,project,template,position&order=position.asc,created_at.asc'),
    soft('/rest/v1/ai_os_project_goals?select=project,goal,due_on,updated_at'),
    soft('/rest/v1/ai_os_goal_milestones?select=id,project,title,due_on,done_at,position&order=position.asc,created_at.asc'),
    soft('/rest/v1/ai_os_pinned_facts?select=id,fact,position,updated_at&order=position.asc,updated_at.asc'),
-   soft('/rest/v1/ai_os_learnings?select=id,run_id,task_id,kind,title,body,keywords,state,path,created_at&order=created_at.desc&limit=50')]);
-  Object.assign(state,{quick,goals,milestones,pinned,learnings});
+   soft('/rest/v1/ai_os_learnings?select=id,run_id,task_id,kind,title,body,keywords,state,path,created_at&order=created_at.desc&limit=50'),
+   soft('/rest/v1/ai_os_vault_tree?select=paths,note_count,updated_at'),
+   soft('/rest/v1/ai_os_automations?select=key,last_run_at,last_ok,last_error,next_run_at,runs_week,created_week,daily_runs')]);
+  Object.assign(state,{quick,goals,milestones,pinned,learnings,vaultTree:vaultTree&&vaultTree[0]||null,automations});
   if(view==='audit')loadAudit();
   Object.assign(state,{status,tasks,approvals,runs,bots,assignments,notes,routines,week,summaries,loadedAt:new Date().toISOString(),error:''});
  }catch(err){if(err.signedOut)return;state.error=err.message}
@@ -477,6 +556,8 @@ function info(t){
   if(prev.revoked_at)return {stage:0,label:'Approval revoked',tone:'danger',needs:true,detail:'You revoked the approval. Approve again to run it.'};
   return {stage:0,label:'Approval expired',tone:'danger',needs:true,detail:'The approval expired before the worker ran it. Approve again to run it.'};
  }
+ if(t.requires_approval&&!t.proposed_by_run)return {stage:0,label:'From n8n',tone:'attention',needs:true,
+  detail:'An n8n automation brought this in from outside. It runs only if you approve it; standing rules never apply to outside text.'};
  if(t.requires_approval)return {stage:0,label:'Suggested',tone:'attention',needs:true,
   detail:'A run suggested this after reading your vault. It runs only if you approve it; standing rules never apply to suggestions.'};
  return {stage:0,label:'Needs approval',tone:'attention',needs:true,detail:'Approve it to let the Mac worker run it once.'};
@@ -626,7 +707,8 @@ function taskDetails(t){
   add('Sources','Your Obsidian vault through '+(tp.tools||[]).join(' and ')+'. Hidden folders, AI/History and #no-ai notes are skipped.');
   add('Scope','The model only reads. It cannot send, edit, delete or spend. Agent OS saves its answer as a new file in your vault\'s AI folder.');
   add('Output','An answer with quoted sources, saved to AI/History (and AI/Knowledge when its quotes check out), and returned here for your review.');
-  if(t.requires_approval)add('Suggested','By a run that read your vault. It needs your approval each time; standing rules do not apply.');
+  if(t.requires_approval)add(t.proposed_by_run?'Suggested':'From n8n',t.proposed_by_run?'By a run that read your vault. It needs your approval each time; standing rules do not apply.'
+   :'Brought in by an n8n automation. The outside text is treated as data. It needs your approval each time; standing rules do not apply.');
   add('Usage cap','Up to '+(ruleOn(t)?tp.max_model_calls:Math.min(tp.max_model_calls||3,3))+' model calls on your Claude subscription, '+(tp.timeout_seconds||0)/60+' min limit.');
   add('Approval',ruleOn(t)?'Standing rule for '+(TEMPLATE_LABEL[t.template]||t.template):a?(a.revoked_at?'Revoked ':'Expires ')+fmtWhen(a.revoked_at||a.expires_at)+' (version '+a.task_version+')':'None yet');
  }
@@ -648,7 +730,7 @@ function taskDetails(t){
 
 // ---------- views ----------
 let view='home';
-const views={home:viewHome,chat:viewChat,tasks:viewTasks,review:viewReview,projects:viewHome,bots:viewBots,control:viewControl,audit:viewAudit};
+const views={home:viewHome,chat:viewChat,brain:viewBrain,tasks:viewTasks,review:viewReview,projects:viewHome,bots:viewBots,control:viewControl,audit:viewAudit};
 function route(){
  const h=location.hash.slice(1);
  if(h.startsWith('task/')){const t=taskById(h.slice(5));view='tasks';render();if(t)taskDetails(t);return}
@@ -695,15 +777,21 @@ function heading(title,sub,...extra){return el('div',{class:'page-heading'},el('
 // Elliot chat: the full conversation, one tap from Home.
 let stickBottom=true;
 const drafts=store.get('drafts',{});
-function elliotThread(){return store.get('thread','Agent OS')}
+// Which project the thread is filtered to ('All' shows everything). Older saved values may name a project.
+function elliotThread(){const f=store.get('thread-filter','All');return f==='All'||PROJECTS.includes(f)?f:'All'}
+// The tag the next message gets: what Will picked for this draft, else a guess from its words, else the last one used.
+function draftTag(text,picked){return picked||guessProject(text)||store.get('last-tag','Agent OS')}
+function tagChip(p,{onclick}={}){return el(onclick?'button':'span',{class:'tag-chip',style:'--hue:'+(PROJECT_HUE[p]||'#d6be7a'),onclick:onclick||null,
+ 'aria-label':onclick?'Show only '+p:null},el('span',{class:'hue-dot','aria-hidden':'true'}),p)}
 function viewChat(){return [el('div',{class:'chat-page'},elliotPanel())]}
 function elliotPanel(){
  const thread=elliotThread();
- const msgs=state.tasks.filter(t=>t.agent==='Elliot'&&t.project===thread).slice(0,30).reverse();
+ const setFilterTo=f=>{store.set('thread-filter',f);stickBottom=true;render()};
+ const msgs=state.tasks.filter(t=>t.agent==='Elliot'&&(thread==='All'||projOf(t)===thread)).slice(0,40).reverse();
  const conv=el('div',{class:'conversation',id:'conversation','aria-live':'polite','aria-label':'Conversation with Elliot'});
- if(!msgs.length)conv.append(el('p',{class:'empty'},'No messages in '+thread+' yet. Ask Elliot about your notes below.'));
+ if(!msgs.length)conv.append(el('p',{class:'empty'},thread==='All'?'No messages yet. Ask Elliot about your notes below.':'No '+thread+' messages yet.'));
  for(const t of msgs){
-  conv.append(el('div',{class:'message user'},t.request));
+  conv.append(el('div',{class:'message user'},el('div',{class:'msg-tag'},tagChip(projOf(t),{onclick:()=>setFilterTo(projOf(t))})),t.request));
   const i=info(t),run=runsFor(t).find(r=>r.result);
   if((t.status==='awaiting_review'||t.status==='completed')&&(run||t.result)){
    conv.append(el('div',{class:'message'},answerText(t,run),sources(run,t)||'',
@@ -712,21 +800,28 @@ function elliotPanel(){
   }else conv.append(el('div',{class:'message pending'+(i.tone==='danger'?' failed':'')},el('strong',{},i.label),el('p',{class:'small'},i.detail),
    el('div',{class:'row wrap',style:'margin-top:10px'},taskActions(t,{compact:true}),el('button',{class:'ghost',onclick:()=>taskDetails(t)},'Details'))));
  }
- const ta=el('textarea',{id:'composer',rows:'2',maxlength:'8000','aria-label':'Message Elliot',placeholder:'Ask Elliot about your notes…'});
- ta.value=drafts[thread]||'';
- ta.addEventListener('input',()=>{drafts[thread]=ta.value;store.set('drafts',drafts)});
+ const ta=el('textarea',{id:'composer',rows:'2',maxlength:'8000','aria-label':'Message Elliot',placeholder:'Ask Elliot anything. It tags the project for you.'});
+ ta.value=drafts.thread||'';
+ let picked=store.get('draft-tag',null);
+ const tagSel=el('select',{class:'thread-select',id:'thread','aria-label':'Project tag for this message'},PROJECTS.map(p=>el('option',{value:p},p)));
+ const tagNote=el('span',{class:'micro',id:'tag-note'});
+ const retag=()=>{const tag=draftTag(ta.value,picked);tagSel.value=tag;tagNote.textContent=picked?'You picked '+tag:'Auto: '+tag};
+ retag();
+ tagSel.addEventListener('change',()=>{picked=tagSel.value;store.set('draft-tag',picked);retag()});
+ ta.addEventListener('input',()=>{drafts.thread=ta.value;store.set('drafts',drafts);retag()});
  ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();send.click()}});
  const tsel=el('select',{class:'thread-select',id:'ask-template','aria-label':'What Elliot should do'},
   ASK_TEMPLATES.map(([k,l])=>el('option',{value:k,selected:store.get('ask','research')===k?true:null},l)));
  tsel.addEventListener('change',()=>store.set('ask',tsel.value));
- const psel=el('select',{class:'thread-select',id:'thread','aria-label':'Conversation'},PROJECTS.map(p=>el('option',{value:p,selected:p===thread?true:null},p)));
- psel.addEventListener('change',()=>{store.set('thread',psel.value);stickBottom=true;render()});
+ const filters=el('div',{class:'thread-filters',role:'group','aria-label':'Show messages for'},['All',...PROJECTS].map(f=>
+  el('button',{class:'chip filter'+(f===thread?' active':''),'aria-pressed':String(f===thread),onclick:()=>setFilterTo(f)},f)));
  const send=el('button',{class:'primary circle',id:'send','aria-label':'Send to Elliot',onclick:async e=>{
   const text=ta.value.trim();if(!text)return ta.focus();
   const tpl=tsel.value,btn=e.currentTarget;btn.disabled=true;
   try{
-   await createTask({title:text.split('\n')[0].slice(0,80),project:thread,agent:'Elliot',executor:'Claude',template:tpl,request:text});
-   ta.value='';delete drafts[thread];store.set('drafts',drafts);stickBottom=true;
+   const tag=tagSel.value;
+   await createTask({title:text.split('\n')[0].slice(0,80),project:tag,agent:'Elliot',executor:'Claude',template:tpl,request:text});
+   ta.value='';delete drafts.thread;store.set('drafts',drafts);store.del('draft-tag');store.set('last-tag',tag);stickBottom=true;
    toast(state.status.rules[tpl]?'Sent. Your '+TEMPLATE_LABEL[tpl]+' rule is on, so the Mac worker will run it.':'Sent. Approve it to let the Mac worker run it.');
   }catch(err){if(!err.signedOut)toast('Not sent: '+err.message)}
   finally{btn.disabled=false;await load()}
@@ -740,9 +835,9 @@ function elliotPanel(){
    el('div',{class:'row'},focus&&pending?el('button',{class:'chip',onclick:()=>openDialog('Waiting for approval',approvalList())},plural(pending,'approval')):'',
     el('button',{class:'circle',id:'focus','aria-pressed':String(focus),'aria-label':focus?'Exit focused conversation':'Focus on the conversation',
      onclick:()=>{document.body.classList.toggle('focus-mode');render();$('focus')&&$('focus').focus()}},icon(focus?'i-close':'i-expand')))),
-  conv,
-  el('div',{class:'composer'},ta,el('div',{class:'composer-controls'},el('div',{class:'row'},psel,tsel),el('div',{class:'row'},mic,send)),
-   el('p',{class:'micro'},'Context: '+thread+' · reads your vault · '+(state.status.rules[tsel.value]?'runs by standing rule':'needs your approval to run')+' · ⌘/Ctrl+Enter sends')));
+  filters,conv,
+  el('div',{class:'composer'},ta,el('div',{class:'composer-controls'},el('div',{class:'row'},tagSel,tsel),el('div',{class:'row'},mic,send)),
+   el('p',{class:'micro'},tagNote,' · reads only that project\'s notes first · '+(state.status.rules[tsel.value]?'runs by standing rule':'needs your approval to run')+' · ⌘/Ctrl+Enter sends')));
  return elliot;
 }
 
@@ -807,16 +902,17 @@ function pulseLine(){
  const line=bits.join(', ');return line.charAt(0).toUpperCase()+line.slice(1)+'.';
 }
 function quickAsk(){
- const proj=store.get('quick-proj',elliotThread());
+ let picked=null;
  const input=el('input',{id:'quick-ask',type:'text',maxlength:'8000',autocomplete:'off','aria-label':'Ask Elliot',placeholder:'Ask Elliot anything about your notes…'});
  input.value=store.get('quick-draft','');
- input.addEventListener('input',()=>store.set('quick-draft',input.value));
- const psel=el('select',{class:'thread-select',id:'quick-proj','aria-label':'Project'},PROJECTS.map(p=>el('option',{value:p,selected:p===proj?true:null},p)));
- psel.addEventListener('change',()=>store.set('quick-proj',psel.value));
+ const psel=el('select',{class:'thread-select',id:'quick-proj','aria-label':'Project tag'},PROJECTS.map(p=>el('option',{value:p},p)));
+ const retag=()=>{psel.value=draftTag(input.value,picked)};retag();
+ input.addEventListener('input',()=>{store.set('quick-draft',input.value);retag()});
+ psel.addEventListener('change',()=>{picked=psel.value});
  const go=async btn=>{const text=input.value.trim();if(!text)return input.focus();
   const tpl=store.get('ask','research');btn.disabled=true;
   try{await createTask({title:text.split('\n')[0].slice(0,80),project:psel.value,agent:'Elliot',executor:'Claude',template:tpl,request:text});
-   input.value='';store.del('quick-draft');store.set('thread',psel.value);
+   input.value='';store.del('quick-draft');store.set('last-tag',psel.value);
    toast(state.status.rules[tpl]?'Sent to Elliot. Your rule is on, so the Mac will run it.':'Sent to Elliot. Approve it to let the Mac run it.')}
   catch(err){if(!err.signedOut)toast('Not sent: '+err.message)}finally{btn.disabled=false;await load()}};
  const send=el('button',{class:'primary circle',id:'quick-send','aria-label':'Send to Elliot',onclick:e=>go(e.currentTarget)},icon('i-send'));
@@ -841,14 +937,26 @@ function hero(){
    usageRings(),
    el('span',{class:'badge '+(online?'ok':'danger')},el('span',{class:'dot'+(online?' pulse':'')}),online?'Mac online':'Mac offline')));
 }
+// The three things Will does most from his phone (design answer 8, Oct 9): ask, approve, see status.
 function tiles(){
- const run=state.tasks.filter(isRunning).length,done=state.week&&state.week.tasks?state.week.tasks.completed||0:state.tasks.filter(t=>t.status==='completed').length;
- const T=[['waiting','Needs you',waitingCount(),'i-review','hot',()=>openDialog('Waiting for you',approvalList())],
-  ['review','To review',toReview().length,'i-check','',()=>location.hash='review'],
-  ['running','Running now',run,'i-tasks','',()=>{setFilter('running')}],
-  ['done','Done this week',done,'i-check','',()=>state.week&&summaryDialog(state.week,'This week so far')]];
- return el('div',{class:'tiles'},T.map(([k,label,n,ic,hot,fn],i)=>el('button',{class:'tile glow rise'+(n&&hot?' hot':''),style:'--i:'+(i+1),'data-tile':k,onclick:fn,
-  'aria-label':label+': '+n},el('span',{class:'tile-icon'},icon(ic)),el('strong',{class:'tile-num'},countUp('tile-'+k,n)),el('span',{class:'tile-label'},label))));
+ const approve=waitingCount()+toReview().length,run=state.tasks.filter(isRunning).length,stuck=state.tasks.filter(isStuck).length;
+ const T=[['ask','Ask Elliot',null,'i-chat','',()=>{const q=$('quick-ask');if(q){q.focus();q.scrollIntoView({block:'center',behavior:'smooth'})}else location.hash='chat'},'Type or dictate'],
+  ['approve','Approve',approve,'i-review','hot',()=>openDialog('Waiting for you',[...approvalList(),...(toReview().length?[el('h3',{},'Results to review'),
+   ...toReview().map(t=>el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},t.title),el('p',{},projOf(t))),el('button',{class:'ghost',onclick:()=>taskDetails(t)},'Review')))]:[])]),
+   approve?'need you':'all clear'],
+  ['status','Status',run,'i-tasks',stuck?'hot':'',statusDialog,stuck?plural(stuck,'stuck task'):run?'running now':'nothing running']];
+ return el('div',{class:'tiles big-actions'},T.map(([k,label,n,ic,hot,fn,sub],i)=>el('button',{class:'tile glow rise'+(n&&hot?' hot':''),style:'--i:'+(i+1),'data-tile':k,onclick:fn,
+  'aria-label':label+(n!=null?': '+n:'')},el('span',{class:'tile-icon'},icon(ic)),
+  el('strong',{class:'tile-num'},n==null?label:countUp('tile-'+k,n)),el('span',{class:'tile-label'},n==null?sub:label+' · '+sub))));
+}
+// What's moving, stuck or waiting on Will, one line per project.
+function statusDialog(){
+ const rows=PROJECTS.map(p=>{const open=state.tasks.filter(t=>projOf(t)===p&&isOpen(t));
+  const run=open.filter(isRunning).length,stuck=open.filter(isStuck).length,needs=open.filter(t=>lane(t)==='needs'||lane(t)==='review').length;
+  const bits=[run?run+' running':null,needs?needs+' waiting on you':null,stuck?stuck+' stuck':null].filter(Boolean);
+  return el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},tagChip(p)),el('p',{},bits.length?bits.join(' · '):open.length?plural(open.length,'open task'):'All clear')),
+   open.length?el('button',{class:'ghost',onclick:()=>{$('dialog').close();store.set('tab','open');location.hash='tasks'}},'Open'):'')});
+ openDialog('Status',[el('p',{class:'muted small'},pulseLine()),...rows]);
 }
 // Bot lineup: every active bot, busiest first. Tap one to see and change its work.
 const botInitials=n=>n.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -900,7 +1008,7 @@ function laneBar(open){
   counts.map(([k,label,n])=>el('span',{class:'seg lane-'+k,style:'flex:'+n,title:n+' '+label.toLowerCase()})));
 }
 function projectCard(p,idx){
- const all=state.tasks.filter(t=>t.project===p),fn=FILTERS.find(x=>x[0]===boardFilter())[2];
+ const all=state.tasks.filter(t=>projOf(t)===p),fn=FILTERS.find(x=>x[0]===boardFilter())[2];
  const open=all.filter(isOpen),shown=open.filter(fn).sort((a,b)=>LANE_RANK[lane(a)]-LANE_RANK[lane(b)]);
  const done=all.filter(t=>t.status==='completed').length,need=open.filter(t=>lane(t)==='needs'||lane(t)==='review').length;
  const expanded=openCards.has(p),limit=expanded?shown.length:3,hue=PROJECT_HUE[p]||'#d6be7a';
@@ -983,9 +1091,9 @@ function widgetNext(){
   off.length?el('details',{class:'routines-off'},el('summary',{},plural(off.length,'routine')+' switched off'),off.map(routineRow)):'',
   el('p',{class:'micro'},'Routines create their task on schedule, even while the Mac sleeps. Anything that writes still waits for you.')),'next-widget']}
 function projectsWidget(){
- const shown=PROJECTS.filter(p=>p!=='AI OS'||state.tasks.some(t=>t.project===p));
+ const shown=PROJECTS;
  // Busy projects first; quiet ones fold into a single row.
- const score=p=>{const o=state.tasks.filter(t=>t.project===p&&isOpen(t));return o.filter(t=>lane(t)==='needs'||lane(t)==='review').length*100+o.length};
+ const score=p=>{const o=state.tasks.filter(t=>projOf(t)===p&&isOpen(t));return o.filter(t=>lane(t)==='needs'||lane(t)==='review').length*100+o.length};
  const busy=shown.filter(p=>score(p)>0).sort((a,b)=>score(b)-score(a)),quiet=shown.filter(p=>score(p)===0);
  return el('section',{class:'projects-w','aria-labelledby':'projects-title'},
   el('div',{class:'row between wrap board-head'},el('h2',{id:'projects-title'},'Projects'),filterBar()),
@@ -999,7 +1107,7 @@ const panel=fn=>()=>{const [title,body,cls]=fn();
 // Home is a grid of widgets. Customize mode lets you drag them into any order, resize, hide and restore them.
 const WIDGETS={
  hero:{title:'Ask Elliot',size:'full',render:hero},
- stats:{title:'At a glance',size:'full',render:tiles},
+ stats:{title:'Ask, approve, status',size:'full',render:tiles},
  approvals:{title:'Approvals',size:'normal',sizes:['normal','wide'],render:panel(widgetApprovals)},
  quick:{title:'Quick actions',size:'normal',sizes:['normal','wide'],render:panel(widgetQuick)},
  pinned:{title:'Pinned facts',size:'normal',sizes:['normal','wide'],render:panel(widgetPinned)},
@@ -1009,6 +1117,7 @@ const WIDGETS={
  activity:{title:'Activity',size:'normal',sizes:['normal','wide'],render:panel(widgetActivity)},
  week:{title:'This week',size:'normal',sizes:['normal','wide'],render:panel(widgetWeek)},
  worker:{title:'Worker',size:'normal',sizes:['normal','wide'],render:panel(widgetWorker)},
+ automations:{title:'Automations',size:'normal',sizes:['normal','wide'],render:automationsTile},
 };
 const SIZE_LABEL={normal:'Small',wide:'Wide',full:'Full'};
 function layout(){
@@ -1139,16 +1248,27 @@ function learningItem(n){
 function approvalList(){
  const items=needsApproval(),decisions=knowledgePending(),notes=notesPending(),learned=learningsPending();
  if(!items.length&&!decisions.length&&!notes.length&&!learned.length)return [el('p',{class:'empty'},'Nothing is waiting for your approval.')];
- return [...decisions.map(knowledgeItem),...notes.map(noteItem),...learned.map(learningItem),...items.map(t=>{const tp=state.templates[t.template]||{},i=info(t);
-  return el('div',{class:'approval-item'},el('div',{class:'row between wrap'},el('strong',{},t.title),badge(i.label)),
-   el('p',{class:'muted small'},t.project+' · '+(TEMPLATE_LABEL[t.template]||t.template)+' · version '+t.version),
-   el('details',{},el('summary',{},'Review details'),el('dl',{class:'scope'},
-    el('dt',{},'Request'),el('dd',{},t.request),el('dt',{},'Agent'),el('dd',{},t.agent+' via '+t.executor),
-    el('dt',{},'Sources'),el('dd',{},'Vault, read-only: '+(tp.tools||[]).join(', ')),el('dt',{},'Scope'),el('dd',{},'Cannot write, send, delete or spend'),
-    el('dt',{},'Output'),el('dd',{},'Answer with quoted sources, for your review'),el('dt',{},'Usage cap'),el('dd',{},'Up to 3 model calls, '+(tp.timeout_seconds||0)/60+' min'),
-    el('dt',{},'Expires'),el('dd',{},'1 or 24 hours after you approve'),el('dt',{},'Version'),el('dd',{},String(t.version)))),
-   el('div',{class:'row wrap'},taskActions(t)));
- })];
+ return [...decisions.map(knowledgeItem),...notes.map(noteItem),...learned.map(learningItem),...items.map(approvalCard)];
+}
+// Every approval card shows the essentials and the limits up front (design answer 6, Oct 9);
+// the full request and the rest are one tap away.
+function approvalCard(t){
+ const tp=state.templates[t.template]||{},i=info(t),b=botFor(t);
+ const first=String(t.request).split('\n')[0],calls=Math.min(tp.max_model_calls||3,3),ctx=(t.context||[]).length;
+ const row=(k,v)=>[el('dt',{},k),el('dd',{},v)];
+ return el('div',{class:'approval-item'},el('div',{class:'row between wrap'},el('strong',{},t.title),badge(i.label)),
+  el('dl',{class:'scope essentials'},
+   ...row('Will do',(TEMPLATE_LABEL[t.template]||t.template)+': '+(first.length>140?first.slice(0,140)+'…':first)),
+   ...row('Who',b?b.name:t.agent+' via '+t.executor),
+   ...row('Project',tagChip(projOf(t))),
+   ...row('Writes',tp.writes?'Yes, it can change files':'No. Read-only; the answer is saved to AI/History'),
+   ...row('Budget','Up to '+plural(calls,'model call')+(tp.timeout_seconds?', '+tp.timeout_seconds/60+' min':'')),
+   ...row('Reads',(ctx?plural(ctx,'attached note')+' plus ':'')+'your vault, read-only (skips #no-ai notes)'),
+   ...row('Expires','1 or 24 hours after you approve, your choice')),
+  el('details',{},el('summary',{},'Full details'),el('dl',{class:'scope'},
+   ...row('Request',t.request),...row('Output','An answer with quoted sources, for your review'),
+   ...row('Tools',(tp.tools||[]).join(', ')||'none'),...row('Version',String(t.version)),...row('Created',fmtWhen(t.created_at)))),
+  el('div',{class:'row wrap'},taskActions(t)));
 }
 function widgetApprovals(){const n=waitingCount();
  return [n?'Approvals ('+n+')':'Approvals',el('div',{},approvalList()),'cream approval-widget']}
@@ -1190,6 +1310,55 @@ function usage(){
  const s=state.status,pct=s.daily_call_cap?Math.min(100,Math.round(100*s.used_today/s.daily_call_cap)):0;
  return [el('div',{class:'progress',role:'progressbar','aria-label':'Model calls today','aria-valuemin':'0','aria-valuemax':String(s.daily_call_cap),'aria-valuenow':String(s.used_today)},el('span',{style:'width:'+pct+'%'})),
   el('p',{class:'small muted'},s.used_today+' of '+s.daily_call_cap+' Agent OS calls today. Claude subscription allowance: Unknown.')]}
+// Automations: the n8n workflows on the Mac, in the futuristic Forest Studio style (approved Oct 9).
+// Rings fill toward each workflow's next run; the stream shows data moving into Elliot.
+// App check is on hold (Will, Oct 9): kept for later, shown as On hold until it reports a run.
+const AUTOMATIONS=[['repo-watch','Repo Watch',15,'GitHub'],['app-check','App check',60,'Apps',true],['watchdog','Watchdog',5,'Mac']];
+function automationState(a,every,held){
+ if(!a||!a.last_run_at)return held?{tone:'idle',label:'On hold'}:{tone:'idle',label:'Not set up'};
+ if(Date.now()-new Date(a.last_run_at)>Math.max(3*every,20)*60000)return {tone:'warn',label:'Stopped'};
+ if(!a.last_ok)return {tone:'warn',label:'Failed'};
+ return {tone:'ok',label:'Healthy'};
+}
+function automationRing(a,every){
+ const svg=svgEl('svg',{class:'auto-ring',viewBox:'0 0 40 40','aria-hidden':'true'});
+ svg.append(svgEl('circle',{class:'track',cx:20,cy:20,r:17}),svgEl('circle',{class:'ticks',cx:20,cy:20,r:17}));
+ const arc=svgEl('circle',{class:'arc',cx:20,cy:20,r:17});
+ // The arc starts where the countdown is now, then fills over the time left until the next run.
+ const next=a&&a.next_run_at?new Date(a.next_run_at).getTime():0,span=every*60000,left=Math.max(0,Math.min(span,next-Date.now()));
+ arc.style.setProperty('--d',Math.max(1,left/1000)+'s');arc.style.setProperty('--from',(107*left/span).toFixed(1));
+ svg.append(arc);return svg;
+}
+function automationsTile(){
+ const rows=Array.isArray(state.automations)?state.automations:null;
+ const byKey=Object.fromEntries((rows||[]).map(r=>[r.key,r]));
+ const states=AUTOMATIONS.map(([k,,every,,held])=>automationState(byKey[k],every,held));
+ const setUp=states.some(s=>s.tone!=='idle'),needs=states.filter(s=>s.tone==='warn').length;
+ const runs=(rows||[]).reduce((n,r)=>n+(r.runs_week||0),0),made=(rows||[]).reduce((n,r)=>n+(r.created_week||0),0);
+ const days=[...Array(7)].map((_,i)=>{const d=new Date(Date.now()-(6-i)*86400000);const key=d.toLocaleDateString('en-CA');
+  return {label:d.toLocaleDateString('en-US',{weekday:'narrow'}),n:(rows||[]).reduce((s,r)=>s+((r.daily_runs||{})[key]||0),0)}});
+ const max=Math.max(1,...days.map(d=>d.n));
+ const core=el('div',{class:'auto-core'+(setUp&&!needs?'':' calm'),'aria-hidden':'true'},el('span',{class:'o1'}),el('span',{class:'o2'}),el('span',{class:'heart'}));
+ const head=el('div',{class:'auto-head'},core,el('div',{},el('h2',{},'Automations'),
+  el('p',{class:'auto-status '+(needs?'warn':setUp?'ok':'idle')},rows===null?'Not installed yet':needs?needs+' need'+(needs===1?'s':'')+' a look':setUp?'Online · n8n on your Mac':'Waiting for n8n')),
+  el('span',{class:'auto-chip'},needs?needs+' NEED YOU':'0 NEED YOU'));
+ const stream=el('div',{class:'auto-stream','aria-hidden':'true'},el('span',{class:'node n1'},'GITHUB'),el('span',{class:'node n2'},'MAC'),el('span',{class:'node n3'},'ELLIOT'));
+ const svg=svgEl('svg',{viewBox:'0 0 400 58',preserveAspectRatio:'none'});
+ for(const [d,c] of [['M70 10 C 180 10, 220 29, 330 29','path'],['M70 48 C 180 48, 220 29, 330 29','path'],['M70 10 C 180 10, 220 29, 330 29','glow'],['M70 48 C 180 48, 220 29, 330 29','glow g2'],['M70 10 C 180 10, 220 29, 330 29','glow g3']])
+  svg.append(svgEl('path',{d,class:c}));
+ stream.prepend(svg);if(!setUp||needs)stream.classList.add('paused');
+ const list=el('div',{class:'auto-rows'},AUTOMATIONS.map(([k,name,every],i)=>{const a=byKey[k],s=states[i];
+  const meta=s.label==='On hold'?'Kept for later':s.tone==='idle'?'Import it in n8n to start':s.label==='Failed'?(a.last_error||'The last run failed'):s.label==='Stopped'?'No run since '+ago(a.last_run_at):
+   (a.next_run_at?'Next '+fmtNext(a.next_run_at)+' · ':'')+'ran '+ago(a.last_run_at);
+  return el('div',{class:'auto-row '+s.tone},s.tone==='idle'?el('span',{class:'auto-ring idle'}):automationRing(a,every),
+   el('div',{class:'auto-text'},el('strong',{},name),el('p',{},meta)),el('span',{class:'auto-pill'},s.label))}));
+ const foot=el('div',{class:'auto-foot'},el('div',{},el('div',{class:'auto-bars','aria-hidden':'true'},days.map((d,i)=>{const b=el('i',{});b.style.height=Math.max(8,Math.round(100*d.n/max))+'%';b.style.animationDelay=(i*0.3)+'s';return b})),
+   el('div',{class:'auto-days','aria-hidden':'true'},days.map(d=>el('span',{},d.label)))),
+  el('div',{class:'auto-stat'},el('b',{},String(runs)),el('span',{},'runs this week'),el('span',{},made+' task'+(made===1?'':'s')+' added')));
+ return el('section',{class:'auto-tile','aria-label':'Automations'},head,stream,list,foot);
+}
+const fmtNext=t=>{const m=Math.round((new Date(t)-Date.now())/60000);return m<=0?'now':m<60?'in '+m+' min':'in '+Math.round(m/60)+' h'};
+
 function widgetWorker(){return ['Worker',el('div',{},workerRows(),usage()),'worker-widget']}
 function workerRows(){
  const s=state.status;
@@ -1205,12 +1374,12 @@ function viewTasks(){
  const tabs=[['open','Open',t=>t.status==='queued'],['review','Needs review',t=>t.status==='awaiting_review'],['done','Done',t=>t.status==='completed'],
   ['failed','Failed or cancelled',t=>t.status==='failed'],['all','All',()=>true]];
  const f=tabs.find(x=>x[0]===tab)||tabs[0];
- const list=state.tasks.filter(t=>f[2](t)&&(!proj||t.project===proj));
+ const list=state.tasks.filter(t=>f[2](t)&&(!proj||projOf(t)===proj));
  const psel=el('select',{class:'thread-select','aria-label':'Project filter'},el('option',{value:''},'All projects'),PROJECTS.map(p=>el('option',{value:p,selected:p===proj?true:null},p)));
  psel.addEventListener('change',()=>{store.set('proj',psel.value);render()});
  return [heading('Tasks','Every task, its approval and its runs. The database decides what can run.',el('button',{class:'primary',onclick:newTaskDialog},icon('i-plus'),'New task')),
   el('div',{class:'row between wrap'},el('div',{class:'tabs',role:'tablist'},tabs.map(([k,l,fn])=>el('button',{role:'tab','aria-selected':String(k===f[0]),class:k===f[0]?'active':null,
-   onclick:()=>{store.set('tab',k);render()}},l+' ('+state.tasks.filter(t=>fn(t)&&(!proj||t.project===proj)).length+')'))),psel),
+   onclick:()=>{store.set('tab',k);render()}},l+' ('+state.tasks.filter(t=>fn(t)&&(!proj||projOf(t)===proj)).length+')'))),psel),
   list.length?el('div',{class:'task-grid'},list.map(taskCard)):el('p',{class:'empty'},'No tasks here.')];
 }
 function taskCard(t){
@@ -1509,6 +1678,44 @@ function micButton(ta){
   try{rec.start();b.setAttribute('aria-pressed','true');b.setAttribute('aria-label','Stop dictating')}catch(err){rec=null;toast('Voice input could not start.')}
  }},icon('i-mic'));
  return b;
+}
+
+// ---------- Brain ----------
+// The vault's folders and note names (design answer 9, Oct 9). The Mac worker sends only paths, never
+// note text, and leaves out #no-ai notes; tapping a note opens it in Obsidian on this device.
+function folderTree(paths){
+ const root={dirs:{},notes:[]};
+ for(const p of paths){const parts=p.split('/'),name=parts.pop();let n=root;
+  for(const d of parts)n=n.dirs[d]||(n.dirs[d]={dirs:{},notes:[]});n.notes.push(p)}
+ return root;
+}
+const countNotes=n=>n.notes.length+Object.values(n.dirs).reduce((a,d)=>a+countNotes(d),0);
+const noteName=p=>p.split('/').pop().replace(/\.md$/i,'');
+function folderNode(name,n,path,depth){
+ const open=new Set(store.get('brain-open',[]));
+ const d=el('details',{class:'folder','data-path':path,open:open.has(path)?true:null},
+  el('summary',{},icon('i-folder'),el('span',{class:'folder-name'},name),el('span',{class:'chip-count'},String(countNotes(n)))),
+  el('div',{class:'folder-body'},
+   ...Object.keys(n.dirs).sort((a,b)=>a.localeCompare(b)).map(k=>folderNode(k,n.dirs[k],path+'/'+k,depth+1)),
+   ...n.notes.sort((a,b)=>a.localeCompare(b)).map(p=>el('a',{class:'note-link',href:obsidianUrl(p)},icon('i-note'),noteName(p)))));
+ d.addEventListener('toggle',()=>{const o=new Set(store.get('brain-open',[]));d.open?o.add(path):o.delete(path);store.set('brain-open',[...o])});
+ return d;
+}
+function viewBrain(){
+ const t=state.vaultTree,paths=t&&Array.isArray(t.paths)?t.paths:[];
+ const head=heading('Brain',t?plural(t.note_count||paths.length,'note')+' in your vault · updated '+fmtWhen(t.updated_at):'Your vault, by folder');
+ if(!paths.length)return [head,el('section',{class:'panel'},el('p',{class:'empty'},
+  'Your Mac sends the folder list once it runs the latest worker. Only folder and note names come here, never what the notes say.'))];
+ const q=el('input',{type:'search',id:'brain-search',placeholder:'Find a note by name','aria-label':'Find a note by name',value:store.get('brain-q','')});
+ const body=el('div',{class:'brain-tree'});
+ const draw=()=>{const s=q.value.trim().toLowerCase();store.set('brain-q',q.value);
+  if(s){const hits=paths.filter(p=>p.toLowerCase().includes(s)).slice(0,60);
+   body.replaceChildren(...(hits.length?hits.map(p=>el('a',{class:'note-link',href:obsidianUrl(p)},icon('i-note'),el('span',{},noteName(p),el('span',{class:'micro'},' '+p.split('/').slice(0,-1).join(' / '))))):[el('p',{class:'empty'},'No note names match.')]));return}
+  const root=folderTree(paths);
+  body.replaceChildren(...Object.keys(root.dirs).sort((a,b)=>a.localeCompare(b)).map(k=>folderNode(k,root.dirs[k],k,0)),
+   ...root.notes.sort().map(p=>el('a',{class:'note-link',href:obsidianUrl(p)},icon('i-note'),noteName(p))))};
+ q.addEventListener('input',draw);draw();
+ return [head,el('section',{class:'panel brain'},q,body,el('p',{class:'micro'},'Tap a note to open it in Obsidian. Search here matches note names; ask Elliot to search what notes say.'))];
 }
 
 // ---------- search ----------
