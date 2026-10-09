@@ -32,6 +32,8 @@
 .timeline{list-style:none;padding:0}.stage.failed{border-color:#e7a38f;color:#f0b3a1}
 .message.pending{border-style:dashed}.message.pending p{margin-top:4px;color:var(--muted)}.message.failed{border-color:#86523f}
 .review-answer{max-width:none;margin-top:12px}
+.trust{margin-top:12px;line-height:1.6}
+.bot.inactive{opacity:.6}.bot .thread-select{flex:1 1 180px;min-width:0;max-width:100%}.note-suggestion pre{white-space:pre-wrap}
 .state-returned{color:#a9d8b2}.state-blocked,.state-failed,.state-stale{color:#f0b3a1}.state-running{color:var(--accent)}
 .stat{font-size:30px;font-weight:600;line-height:1.2;margin:8px 0 4px}
 .note h2{font-size:18px}.note .list-row:first-of-type{padding-top:8px}
@@ -61,7 +63,7 @@ dialog pre{font-family:inherit}
 
 <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></symbol><symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-2 2V11a9 9 0 0 1 19 0Z"/></symbol><symbol id="i-tasks" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 11 3 3 5-6"/></symbol><symbol id="i-brain" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="m10 8-4 6m8-6 4 6M8 17h8"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 5h7l2 3h9v12H3Z"/></symbol><symbol id="i-agents" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></symbol><symbol id="i-review" viewBox="0 0 24 24"><path d="M4 3h12l4 4v14H4Z"/><path d="M8 10h8m-8 4h8m-8 4h5"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 8v8m6-8v8"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2m-7 9v3m-4 0h8"/></symbol><symbol id="i-send" viewBox="0 0 24 24"><path d="m3 3 18 9-18 9 3-9Zm3 9h15"/></symbol><symbol id="i-expand" viewBox="0 0 24 24"><path d="M3 9V3h6m6 0h6v6m0 6v6h-6m-6 0H3v-6"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="8" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></symbol><symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
 
-<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol><symbol id="i-bot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5M3 12v3M21 12v3"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
 </defs></svg>
 
 <section id="signin" class="signin" hidden aria-labelledby="signin-title">
@@ -110,7 +112,7 @@ const ERROR_TEXT={model_limit:'Hit the Claude subscription limit',model_error:'T
  tool_violation:'Tried a tool it was not allowed',invalid_output:'Returned an unusable answer',authorization_lost:'Stopped because its approval ended',
  stopped:'Stopped by pause',worker_error:'The Mac worker hit an error',stale:'The worker stopped before returning'};
 const CANCELLED='Cancelled from the dashboard';
-const VIEWS=[['home','Home','i-home'],['tasks','Tasks','i-tasks'],['review','Review','i-review'],['projects','Projects','i-folder'],['control','Control','i-settings']];
+const VIEWS=[['home','Home','i-home'],['tasks','Tasks','i-tasks'],['review','Review','i-review'],['projects','Projects','i-folder'],['bots','Bots','i-bot'],['control','Control','i-settings']];
 
 // ---------- small helpers ----------
 const $=id=>document.getElementById(id);
@@ -186,19 +188,22 @@ async function enter(){
 }
 
 // ---------- data ----------
-const state={status:null,tasks:[],approvals:[],runs:[],templates:{},loadedAt:null,error:''};
+const state={status:null,tasks:[],approvals:[],runs:[],bots:[],assignments:[],notes:[],templates:{},loadedAt:null,error:''};
 let pollTimer=null;
 function startPolling(){clearInterval(pollTimer);pollTimer=setInterval(()=>{if(document.visibilityState==='visible')load()},20000)}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&session)load()});
 async function load(){
  try{
-  const [status,tasks,approvals,runs]=await Promise.all([
+  const [status,tasks,approvals,runs,bots,assignments,notes]=await Promise.all([
    rpc('ai_os_worker_status'),
-   http('/rest/v1/ai_os_tasks?select=id,title,project,agent,executor,template,request,context,result,status,version,created_at,updated_at&order=created_at.desc&limit=300'),
+   http('/rest/v1/ai_os_tasks?select=id,title,project,agent,executor,template,request,context,result,status,version,created_at,updated_at,requires_approval,proposed_by_run&order=created_at.desc&limit=300'),
    http('/rest/v1/ai_os_dispatch_approvals?select=id,task_id,task_version,approved_at,expires_at,revoked_at&order=approved_at.desc,id.desc&limit=300'),
-   http('/rest/v1/ai_os_runs?select=id,task_id,task_version,template,authorized_by,state,claimed_at,finished_at,deadline_at,calls_used,model,result,error_kind,error&order=claimed_at.desc&limit=300'),
+   http('/rest/v1/ai_os_runs?select=id,task_id,task_version,template,authorized_by,state,claimed_at,finished_at,deadline_at,calls_used,model,result,error_kind,error,trust,history_path,knowledge_state,knowledge_path&order=claimed_at.desc&limit=300'),
+   http('/rest/v1/ai_os_bots?select=id,name,role,platform,external_id,notes,active,connected,created_at&order=name.asc'),
+   http('/rest/v1/ai_os_bot_assignments?select=task_id,bot_id,assigned_at'),
+   http('/rest/v1/ai_os_note_suggestions?select=id,run_id,task_id,title,body,sources,state,path,created_at,decided_at&order=created_at.desc&limit=100'),
   ]);
-  Object.assign(state,{status,tasks,approvals,runs,loadedAt:new Date().toISOString(),error:''});
+  Object.assign(state,{status,tasks,approvals,runs,bots,assignments,notes,loadedAt:new Date().toISOString(),error:''});
  }catch(err){if(err.signedOut)return;state.error=err.message}
  render();
 }
@@ -208,7 +213,8 @@ const lastApproval=t=>state.approvals.find(a=>a.task_id===t.id);
 function activeApproval(t){const a=lastApproval(t);
  return a&&!a.revoked_at&&a.task_version===t.version&&new Date(a.expires_at)>Date.now()?a:null}
 const runnable=t=>t.executor==='Claude'&&!!t.template;
-const ruleOn=t=>!!(state.status&&state.status.rules&&state.status.rules[t.template]);
+// Suggested tasks never run on a standing rule; the backend enforces the same.
+const ruleOn=t=>!t.requires_approval&&!!(state.status&&state.status.rules&&state.status.rules[t.template]);
 const workerOnline=()=>!!(state.status&&state.status.workers.some(w=>w.online));
 const isCancelled=t=>t.status==='failed'&&t.result.startsWith(CANCELLED);
 
@@ -229,7 +235,9 @@ function info(t){
  }
  // queued
  if(running)return {stage:2,label:'Running',tone:'attention',detail:'Started '+fmtWhen(running.claimed_at)+' on '+(state.status.workers[0]?state.status.workers[0].worker_id:'the Mac')+'.'};
- if(!runnable(t))return {stage:0,label:'Manual handoff',tone:'',detail:t.executor+' tasks are not run by the Mac worker. Mark it done when it is handled.'};
+ if(!runnable(t)){const b=botFor(t);
+  return b?{stage:0,label:'With '+b.name,tone:'',detail:'Assigned to '+b.name+'. Grok is not connected yet, so hand it over yourself and mark it done when it is handled.'}
+   :{stage:0,label:'Manual handoff',tone:'',detail:t.executor+' tasks are not run by the Mac worker. Mark it done when it is handled.'}}
  const waitWorker=()=>state.status.paused?'The queue is paused, so it waits until you resume.'
   :workerOnline()?'The Mac worker will pick it up shortly.':'Approved, but the Mac worker is offline. It runs when the Mac wakes; this page cannot wake it.';
  if(ruleOn(t))return {stage:1,label:'Approved by rule',tone:'ok',detail:'Your '+(TEMPLATE_LABEL[t.template]||t.template)+' rule is on. '+waitWorker()};
@@ -240,10 +248,41 @@ function info(t){
   if(prev.revoked_at)return {stage:0,label:'Approval revoked',tone:'danger',needs:true,detail:'You revoked the approval. Approve again to run it.'};
   return {stage:0,label:'Approval expired',tone:'danger',needs:true,detail:'The approval expired before the worker ran it. Approve again to run it.'};
  }
+ if(t.requires_approval)return {stage:0,label:'Suggested',tone:'attention',needs:true,
+  detail:'A run suggested this after reading your vault. It runs only if you approve it; standing rules never apply to suggestions.'};
  return {stage:0,label:'Needs approval',tone:'attention',needs:true,detail:'Approve it to let the Mac worker run it once.'};
+}
+// Where an answer was filed and how its citations checked out.
+const TRUST={verified:['Verified','ok','Every quote was found in its note. Saved to Knowledge.'],
+ checked:['Checked','ok','Some quotes were missing, and a second check found the answer supported. Saved to Knowledge.'],
+ unsupported:['Not supported','danger','A second check found the answer not supported by its notes. Kept in History only.'],
+ borderline:['Your call','attention','Only some quotes were found and the second check was not conclusive. You decide whether it goes into Knowledge.'],
+ unverified:['Unverified','danger','No quote could be found in the cited notes. Kept in History only.'],
+ not_checked:['Draft','','Drafts are not trust checked. Kept in History only.']};
+function trustInfo(run){
+ const t=run&&run.trust;if(!t||!TRUST[t.status])return null;
+ const [label,tone,detail]=TRUST[t.status];
+ const ks=run.knowledge_state;
+ const extra=ks==='approved'?' You approved it; the Mac saves it to Knowledge next time it checks in.':ks==='declined'?' You kept it in History only.':ks==='written'&&t.status==='borderline'?' You approved it and it is saved in Knowledge.':'';
+ return {label,tone,detail:detail+extra,count:t.total?t.verified+' of '+t.total+' quotes found':'no citations'};
+}
+function trustLine(run){const i=trustInfo(run);if(!i)return '';
+ return el('p',{class:'small trust'},badge(i.label,i.tone),' '+i.count+'. '+i.detail+(run.history_path?' File: '+(run.knowledge_path||run.history_path):''))}
+const knowledgePending=()=>(state.status&&state.status.knowledge_pending)||[];
+const decideKnowledge=(runId,promote)=>rpc('ai_os_knowledge_decide',{p_run_id:runId,p_promote:promote});
+function knowledgeButtons(runId){
+ const b=(label,cls,promote,ok)=>el('button',{class:cls,onclick:e=>act(e.currentTarget,()=>decideKnowledge(runId,promote),ok)},label);
+ return [b('Save to Knowledge','primary',true,'Approved. The Mac saves it to Knowledge next time it checks in.'),b('Keep in History only','',false,'Kept in History only.')];
 }
 const needsApproval=()=>state.tasks.filter(t=>t.status==='queued'&&runnable(t)&&info(t).needs);
 const toReview=()=>state.tasks.filter(t=>t.status==='awaiting_review');
+const notesPending=()=>state.notes.filter(n=>n.state==='pending');
+const waitingCount=()=>needsApproval().length+knowledgePending().length+notesPending().length;
+// Bots: a manual label for now. Nothing here sends anything to Grok.
+const botFor=t=>{const a=state.assignments.find(x=>x.task_id===t.id);return a?state.bots.find(b=>b.id===a.bot_id):null};
+const tasksFor=b=>state.assignments.filter(a=>a.bot_id===b.id).map(a=>taskById(a.task_id)).filter(Boolean);
+const assignable=t=>t.executor==='Grok'||t.executor==='Manual';
+const assignBot=(t,botId)=>rpc('ai_os_bot_assign',{p_task_id:t.id,p_bot_id:botId||null});
 
 // ---------- actions ----------
 async function act(btn,fn,ok){
@@ -323,28 +362,31 @@ function taskDetails(t){
  if(runnable(t)){
   add('Action',(tp.label||t.template)+': '+(tp.instructions||''));
   add('Sources','Your Obsidian vault through '+(tp.tools||[]).join(' and ')+'. Hidden folders, AI/History and #no-ai notes are skipped.');
-  add('Scope','Read-only. It cannot write, send, delete or spend.');
-  add('Output','An answer with quoted sources, returned here for your review.');
+  add('Scope','The model only reads. It cannot send, edit, delete or spend. Agent OS saves its answer as a new file in your vault\'s AI folder.');
+  add('Output','An answer with quoted sources, saved to AI/History (and AI/Knowledge when its quotes check out), and returned here for your review.');
+  if(t.requires_approval)add('Suggested','By a run that read your vault. It needs your approval each time; standing rules do not apply.');
   add('Usage cap','Up to '+(ruleOn(t)?tp.max_model_calls:Math.min(tp.max_model_calls||3,3))+' model calls on your Claude subscription, '+(tp.timeout_seconds||0)/60+' min limit.');
   add('Approval',ruleOn(t)?'Standing rule for '+(TEMPLATE_LABEL[t.template]||t.template):a?(a.revoked_at?'Revoked ':'Expires ')+fmtWhen(a.revoked_at||a.expires_at)+' (version '+a.task_version+')':'None yet');
  }
+ if(assignable(t))add('Bot',botPicker(t));
  add('Version',String(t.version));add('Created',fmtWhen(t.created_at));add('Updated',fmtWhen(t.updated_at));
  const body=[timeline(t),el('p',{class:'muted'},i.detail),el('h3',{},'Request'),el('pre',{},t.request)];
  if(t.context&&t.context.length)body.push(el('h3',{},'Context notes'),...t.context.map(c=>el('details',{},el('summary',{},c.title),el('pre',{},c.body))));
  body.push(dl);
  const run=runs.find(r=>r.result);
- if(t.result||run)body.push(el('h3',{},'Result'),el('pre',{},answerText(t,run)),sources(run,t)||'');
+ if(t.result||run)body.push(el('h3',{},'Result'),el('pre',{},answerText(t,run)),sources(run,t)||'',trustLine(run));
+ if(run&&run.knowledge_state==='pending')body.push(el('div',{class:'row wrap'},knowledgeButtons(run.id)));
  if(runs.length){body.push(el('h3',{},'Runs'));
   for(const r of runs)body.push(el('div',{class:'list-row'},el('div',{},el('strong',{class:'state-'+r.state},r.state),
    el('p',{},['version '+r.task_version,r.authorized_by==='rule'?'by rule':'by approval',fmtWhen(r.claimed_at),r.calls_used!=null?plural(r.calls_used,'call'):'',r.model||''].filter(Boolean).join(' · ')),
-   r.error?el('p',{},r.error):'')))}
+   r.error?el('p',{},r.error):'',r.history_path?el('p',{},'Saved to '+[r.history_path,r.knowledge_path].filter(Boolean).join(' and ')):'')))}
  body.push(el('div',{class:'row wrap',style:'margin-top:16px'},taskActions(t)));
  openDialog(t.title,body);
 }
 
 // ---------- views ----------
 let view='home';
-const views={home:viewHome,tasks:viewTasks,review:viewReview,projects:viewProjects,control:viewControl};
+const views={home:viewHome,tasks:viewTasks,review:viewReview,projects:viewProjects,bots:viewBots,control:viewControl};
 function route(){
  const h=location.hash.slice(1);
  if(h.startsWith('task/')){const t=taskById(h.slice(5));view='tasks';render();if(t)taskDetails(t);return}
@@ -353,7 +395,7 @@ function route(){
 window.addEventListener('hashchange',()=>session&&route());
 
 function nav(){
- const counts={review:toReview().length,home:needsApproval().length};
+ const counts={review:toReview().length,home:waitingCount()};
  for(const id of ['desktop-nav','mobile-nav']){
   const n=$(id);n.replaceChildren(...VIEWS.map(([k,label,ic])=>el('a',{href:'#'+k,class:view===k?'active':null,'aria-current':view===k?'page':null},
    icon(ic),el('span',{},label),counts[k]?el('span',{class:'count','aria-label':counts[k]+' waiting'},String(counts[k])):'')));
@@ -456,10 +498,27 @@ function widgetShell(k,[title,body,cls],idx,order){
  w.addEventListener('drop',e=>{e.preventDefault();const from=e.dataTransfer.getData('text/plain');if(from&&from!==k)moveWidget(from,widgetOrder().indexOf(k))});
  return w;
 }
+function knowledgeItem(k){
+ const run=state.runs.find(r=>r.id===k.run_id)||{trust:k.trust,history_path:k.history_path},t=taskById(k.task_id),i=trustInfo(run);
+ return el('div',{class:'approval-item'},el('div',{class:'row between wrap'},el('strong',{},'Save to Knowledge? '+k.title),badge('Your call')),
+  el('p',{class:'muted small'},k.project+' · '+(i?i.count:'')+' · in '+k.history_path),
+  el('p',{class:'small'},'Only some of this answer\'s quotes were found in your notes, and the second check could not decide. Knowledge notes are what future runs trust.'),
+  el('div',{class:'row wrap'},knowledgeButtons(k.run_id),t?el('button',{class:'ghost',onclick:()=>taskDetails(t)},'Read answer'):''));
+}
+function noteItem(n){
+ const t=taskById(n.task_id);
+ return el('div',{class:'approval-item note-suggestion'},el('div',{class:'row between wrap'},el('strong',{},'Save note? '+n.title),badge('AI note')),
+  el('p',{class:'muted small'},'Suggested '+fmtWhen(n.created_at)+(t?' while working on "'+t.title+'"':'')+'. Saved to AI/Notes only if you approve.'),
+  el('details',{},el('summary',{},'Read the note'),el('pre',{},n.body),
+   n.sources.length?el('p',{class:'muted small'},'Sources: '+n.sources.join(', ')):''),
+  el('div',{class:'row wrap'},
+   el('button',{class:'primary',onclick:e=>act(e.currentTarget,()=>rpc('ai_os_note_decide',{p_id:n.id,p_approve:true}),'Approved. The Mac saves it to AI/Notes next time it checks in.')},'Save to AI notes'),
+   el('button',{onclick:e=>act(e.currentTarget,()=>rpc('ai_os_note_decide',{p_id:n.id,p_approve:false}),'Not saved.')},'Don\'t save')));
+}
 function approvalList(){
- const items=needsApproval();
- if(!items.length)return [el('p',{class:'empty'},'Nothing is waiting for your approval.')];
- return items.map(t=>{const tp=state.templates[t.template]||{},i=info(t);
+ const items=needsApproval(),decisions=knowledgePending(),notes=notesPending();
+ if(!items.length&&!decisions.length&&!notes.length)return [el('p',{class:'empty'},'Nothing is waiting for your approval.')];
+ return [...decisions.map(knowledgeItem),...notes.map(noteItem),...items.map(t=>{const tp=state.templates[t.template]||{},i=info(t);
   return el('div',{class:'approval-item'},el('div',{class:'row between wrap'},el('strong',{},t.title),badge(i.label)),
    el('p',{class:'muted small'},t.project+' · '+(TEMPLATE_LABEL[t.template]||t.template)+' · version '+t.version),
    el('details',{},el('summary',{},'Review details'),el('dl',{class:'scope'},
@@ -468,9 +527,9 @@ function approvalList(){
     el('dt',{},'Output'),el('dd',{},'Answer with quoted sources, for your review'),el('dt',{},'Usage cap'),el('dd',{},'Up to 3 model calls, '+(tp.timeout_seconds||0)/60+' min'),
     el('dt',{},'Expires'),el('dd',{},'1 or 24 hours after you approve'),el('dt',{},'Version'),el('dd',{},String(t.version)))),
    el('div',{class:'row wrap'},taskActions(t)));
- });
+ })];
 }
-function widgetApprovals(){const n=needsApproval().length;
+function widgetApprovals(){const n=waitingCount();
  return [n?'Approvals ('+n+')':'Approvals',el('div',{},approvalList()),'cream approval-widget']}
 function widgetBriefing(){
  const s=state.status,now=new Date();
@@ -481,6 +540,7 @@ function widgetBriefing(){
   el('p',{class:'label'},now.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'})),
   el('div',{class:'briefing'},
    el('p',{},plural(needsApproval().length,'task')+' waiting for your approval.'),
+   notesPending().length?el('p',{},plural(notesPending().length,'suggested note')+' waiting for you.'):'',
    el('p',{},plural(toReview().length,'result')+' ready to review.'),
    el('p',{},running.length?plural(running.length,'task')+' running now.':queued.length?plural(queued.length,'approved task')+' waiting for the worker.':'Nothing is running.'),
    el('p',{},'Worker: '+(workerOnline()?'online':'offline')+(s.paused?', queue paused':'')+'.')),
@@ -517,25 +577,29 @@ function viewTasks(){
 function taskCard(t){
  const i=info(t);
  return el('article',{class:'task'},el('div',{class:'row between wrap'},el('h3',{},t.title),badge(i.label,i.tone)),
-  el('p',{class:'muted small'},[t.project,t.agent+' via '+t.executor,t.template?TEMPLATE_LABEL[t.template]:null,'v'+t.version,fmtWhen(t.created_at)].filter(Boolean).join(' · ')),
+  el('p',{class:'muted small'},[t.project,t.agent+' via '+t.executor,botFor(t)?'Bot: '+botFor(t).name:null,t.template?TEMPLATE_LABEL[t.template]:null,'v'+t.version,fmtWhen(t.created_at)].filter(Boolean).join(' · ')),
   timeline(t),el('p',{class:'small'},i.detail),
   el('div',{class:'row wrap',style:'margin-top:12px'},taskActions(t,{compact:true}),el('button',{class:'ghost',onclick:()=>taskDetails(t)},'Details')));
 }
-function newTaskDialog(){
+function newTaskDialog(preset={}){
  const f={title:el('input',{required:true,maxlength:'120',id:'nt-title'}),request:el('textarea',{required:true,rows:'5',maxlength:'8000'}),
   project:el('select',{},PROJECTS.map(p=>el('option',{},p))),agent:el('input',{value:'Elliot',maxlength:'80'}),
-  executor:el('select',{id:'nt-executor'},EXECUTORS.map(x=>el('option',{},x))),template:el('select',{},Object.entries(TEMPLATE_LABEL).map(([k,l])=>el('option',{value:k},l)))};
+  executor:el('select',{id:'nt-executor'},EXECUTORS.map(x=>el('option',{selected:preset.executor===x?true:null},x))),template:el('select',{},Object.entries(TEMPLATE_LABEL).map(([k,l])=>el('option',{value:k},l)))};
  const tplRow=el('label',{},el('span',{},'Template (what the Mac worker may do)'),f.template);
+ if(preset.agent)f.agent.value=preset.agent;
+ tplRow.hidden=f.executor.value!=='Claude';
  f.executor.addEventListener('change',()=>tplRow.hidden=f.executor.value!=='Claude');
  const err=el('p',{class:'small',role:'alert'});
  const form=el('form',{onsubmit:async e=>{e.preventDefault();const b=form.querySelector('[type=submit]');b.disabled=true;
-  try{await createTask({title:f.title.value,project:f.project.value,agent:f.agent.value||'Elliot',executor:f.executor.value,template:f.template.value,request:f.request.value});
-   $('dialog').close();toast('Task created.');store.set('tab','open');await load()}catch(x){err.textContent=x.message}finally{b.disabled=false}}},
+  try{const t=await createTask({title:f.title.value,project:f.project.value,agent:f.agent.value||'Elliot',executor:f.executor.value,template:f.template.value,request:f.request.value});
+   if(preset.bot&&assignable(t))await assignBot(t,preset.bot.id);
+   $('dialog').close();toast(preset.bot?'Task created for '+preset.bot.name+'.':'Task created.');store.set('tab','open');await load()}catch(x){err.textContent=x.message}finally{b.disabled=false}}},
   el('label',{},el('span',{},'Title'),f.title),el('label',{},el('span',{},'Request'),f.request),
   el('div',{class:'row wrap form-pair'},el('label',{},el('span',{},'Project'),f.project),el('label',{},el('span',{},'Agent'),f.agent),el('label',{},el('span',{},'Run with'),f.executor)),
-  tplRow,el('p',{class:'muted small'},'Claude tasks run on your Mac worker, read-only, after approval or a standing rule. Other tools are manual handoffs.'),
+  tplRow,el('p',{class:'muted small'},preset.bot?'This task is labelled for '+preset.bot.name+'. Grok is not connected yet, so you hand it over yourself and mark it done here.'
+   :'Claude tasks run on your Mac worker, read-only, after approval or a standing rule. Other tools are manual handoffs.'),
   err,el('button',{class:'primary',type:'submit'},'Create task'));
- openDialog('New task',form);setTimeout(()=>f.title.focus(),0);
+ openDialog(preset.bot?'New task for '+preset.bot.name:'New task',form);setTimeout(()=>f.title.focus(),0);
 }
 
 // Review
@@ -545,6 +609,7 @@ function viewReview(){
   items.length?el('div',{class:'task-grid'},items.map(t=>{const run=runsFor(t).find(r=>r.result);
    return el('article',{class:'task'},el('div',{class:'row between wrap'},el('h3',{},t.title),badge(t.project)),
     el('p',{class:'muted small'},t.request),el('div',{class:'message review-answer'},answerText(t,run),sources(run,t)||''),
+    trustLine(run),run&&run.knowledge_state==='pending'?el('div',{class:'row wrap'},knowledgeButtons(run.id)):'',
     el('p',{class:'micro'},runFooter(run)),el('div',{class:'row wrap',style:'margin-top:12px'},taskActions(t),el('button',{class:'ghost',onclick:()=>taskDetails(t)},'Details')))})):
   el('p',{class:'empty'},'Nothing to review.')];
 }
@@ -559,6 +624,54 @@ function viewProjects(){
    el('div',{class:'row wrap'},el('button',{onclick:()=>{store.set('proj',p);store.set('tab','all');location.hash='tasks'}},'Open tasks'),
     el('button',{class:'ghost',onclick:()=>{store.set('thread',p);stickBottom=true;location.hash='home'}},'Talk to Elliot')));
  }))];
+}
+
+// Bots
+function botPicker(t){
+ const cur=botFor(t);
+ const sel=el('select',{class:'thread-select','aria-label':'Bot for '+t.title},el('option',{value:''},'No bot'),
+  state.bots.filter(b=>b.active||(cur&&cur.id===b.id)).map(b=>el('option',{value:b.id,selected:cur&&cur.id===b.id?true:null},b.name+(b.role?' · '+b.role:''))));
+ sel.addEventListener('change',()=>act(sel,()=>assignBot(t,sel.value),sel.value?'Assigned to '+state.bots.find(b=>b.id===sel.value).name+'.':'Bot removed.'));
+ return sel;
+}
+function botCard(b){
+ const ts=tasksFor(b),open=ts.filter(t=>t.status==='queued'||t.status==='awaiting_review'),done=ts.length-open.length;
+ const choices=state.tasks.filter(t=>assignable(t)&&t.status==='queued'&&!botFor(t));
+ const pick=el('select',{class:'thread-select','aria-label':'Task to assign to '+b.name},el('option',{value:''},choices.length?'Pick an open task':'No unassigned Grok or manual tasks'),
+  choices.map(t=>el('option',{value:t.id},t.title+' · '+t.project)));
+ return el('section',{class:'note bot'+(b.active?'':' inactive')},
+  el('div',{class:'row between wrap'},el('h2',{},b.name),badge(b.connected?'Connected':'Not connected',b.connected?'ok':'')),
+  el('p',{class:'muted small'},[b.role||'No role yet',b.platform].join(' · ')),
+  open.length?el('div',{class:'open-list'},open.map(t=>el('div',{class:'list-row'},el('div',{},el('strong',{class:'small'},t.title),el('p',{},t.project+' · '+info(t).label)),
+   el('div',{class:'row'},el('button',{class:'ghost',onclick:()=>taskDetails(t)},'Open'),
+    el('button',{class:'ghost','aria-label':'Unassign '+t.title+' from '+b.name,onclick:e=>act(e.currentTarget,()=>assignBot(t,null),'Unassigned.')},'Unassign'))))):el('p',{class:'muted'},'Nothing assigned.'),
+  done?el('p',{class:'micro'},plural(done,'finished task')):'',
+  b.active?el('div',{class:'row wrap',style:'margin-top:12px'},pick,
+   el('button',{onclick:e=>{if(!pick.value)return pick.focus();const t=taskById(pick.value);act(e.currentTarget,()=>assignBot(t,b.id),'Assigned to '+b.name+'.')}},'Assign'),
+   el('button',{class:'primary',onclick:()=>newTaskDialog({executor:'Grok',agent:b.name,bot:b})},icon('i-plus'),'New task')):'',
+  el('div',{class:'row wrap',style:'margin-top:8px'},el('button',{class:'ghost',onclick:e=>act(e.currentTarget,
+   ()=>http('/rest/v1/ai_os_bots?id=eq.'+encodeURIComponent(b.id),{method:'PATCH',body:{active:!b.active},prefer:'return=minimal'}),b.active?b.name+' hidden.':b.name+' is back.')},b.active?'Hide bot':'Show bot')));
+}
+function addBotDialog(){
+ const name=el('input',{required:true,maxlength:'60',id:'bot-name'}),role=el('input',{maxlength:'200'});
+ const platform=el('select',{},['Grok Bot','ChatGPT','Claude','Hermes','Other'].map(x=>el('option',{},x)));
+ const err=el('p',{class:'small',role:'alert'});
+ const form=el('form',{onsubmit:async e=>{e.preventDefault();const btn=form.querySelector('[type=submit]');btn.disabled=true;
+  try{await http('/rest/v1/ai_os_bots',{method:'POST',body:{owner_user_id:session.user.id,name:name.value.trim(),role:role.value.trim(),platform:platform.value},prefer:'return=minimal'});
+   $('dialog').close();toast('Bot added.');await load()}catch(x){err.textContent=x.message}finally{btn.disabled=false}}},
+  el('label',{},el('span',{},'Name'),name),el('label',{},el('span',{},'Role'),role),el('label',{},el('span',{},'Platform'),platform),
+  el('p',{class:'muted small'},'Bots start as not connected. Agent OS never contacts a bot until you connect it in a later phase.'),err,el('button',{class:'primary',type:'submit'},'Add bot'));
+ openDialog('Add a bot',form);setTimeout(()=>name.focus(),0);
+}
+function viewBots(){
+ const showHidden=!!store.get('hidden-bots',false),hidden=state.bots.filter(b=>!b.active).length;
+ const list=state.bots.filter(b=>b.active||showHidden);
+ const unassigned=state.tasks.filter(t=>assignable(t)&&t.status==='queued'&&!botFor(t)).length;
+ return [heading('Bots','Assign your Grok bots to tasks. Grok is not connected yet, so an assignment is a label: you hand the work over yourself.',
+   el('button',{class:'primary',onclick:addBotDialog},icon('i-plus'),'Add bot')),
+  el('p',{class:'muted small'},plural(state.bots.filter(b=>b.active).length,'bot')+' · '+plural(state.assignments.length,'assigned task')+' · '+plural(unassigned,'open Grok or manual task')+' without a bot'),
+  list.length?el('div',{class:'note-grid bot-grid'},list.map(botCard)):el('p',{class:'empty'},'No bots yet. Add one to start assigning tasks.'),
+  hidden?el('button',{class:'ghost',style:'margin-top:16px',onclick:()=>{store.set('hidden-bots',!showHidden);render()}},showHidden?'Hide hidden bots':'Show '+plural(hidden,'hidden bot')):''];
 }
 
 // Control
