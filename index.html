@@ -550,6 +550,14 @@ function guessProject(text){
 const EXECUTORS=['Claude','ChatGPT','Codex','Grok','Manual'];
 // The Mac worker runs template tasks on either subscription. Elliot's model is a per-device choice.
 const WORKER_EXECUTORS=['Claude','ChatGPT'];
+const ROUTING_PROFILES=[{"id":"claude-routine","executor":"Claude","model":"claude-haiku-5-5","reasoning":"low","description":"Routine extraction, short summaries and simple drafts; read-only vault tools.","version":"1"},{"id":"claude-balanced","executor":"Claude","model":"claude-sonnet-5-5","reasoning":"medium","description":"Multi-note synthesis, research and comparisons; read-only vault tools.","version":"1"},{"id":"claude-deep","executor":"Claude","model":"claude-opus-5-5","reasoning":"high","description":"Difficult analysis and complex tradeoffs; read-only vault tools; greater subscription usage.","version":"1"},{"id":"chatgpt-routine","executor":"ChatGPT","model":"gpt-6-luna","reasoning":"low","description":"Routine extraction, short summaries and simple drafts; notes supplied by worker, no model tools.","version":"1"},{"id":"chatgpt-balanced","executor":"ChatGPT","model":"gpt-6.1-sol","reasoning":"medium","description":"Multi-note synthesis, research and comparisons; notes supplied by worker, no model tools.","version":"1"},{"id":"chatgpt-deep","executor":"ChatGPT","model":"gpt-6-astra","reasoning":"high","description":"Difficult analysis and complex tradeoffs; notes supplied by worker, no model tools; greater subscription usage.","version":"1"}];
+function routingModeSelect(id){
+ const s=el('select',{class:'thread-select',id,'aria-label':'Jev model routing',disabled:!state.routingAvailable},
+  el('option',{value:'off'},'Jev off'),el('option',{value:'suggest'},'Jev: suggest model'));
+ s.value=state.routingAvailable?store.get('jev-routing','off'):'off';
+ s.addEventListener('change',()=>{store.set('jev-routing',s.value);document.querySelectorAll('#ask-routing,#quick-routing').forEach(o=>o.value=s.value)});
+ return s;
+}
 const askModel=()=>{const m=store.get('model','Claude');return WORKER_EXECUTORS.includes(m)?m:'Claude'};
 function modelSelect(id){
  const s=el('select',{class:'thread-select',id,'aria-label':'Which subscription runs it'},WORKER_EXECUTORS.map(m=>el('option',{value:m,selected:askModel()===m?true:null},m)));
@@ -677,7 +685,7 @@ async function load(){
   ]);
   // Quick actions and goals arrive with the Home features update; until then those widgets explain that.
   const soft=q=>http(q).catch(err=>{if(err.signedOut)throw err;return null});
-  const [quick,goals,milestones,pinned,learnings,vaultTree,automations,facts,decisions,layouts,prefs,runExtras,taskChecks,runChecks,scopes,ruleProposals]=await Promise.all([
+  const [quick,goals,milestones,pinned,learnings,vaultTree,automations,facts,decisions,layouts,prefs,runExtras,taskChecks,runChecks,scopes,ruleProposals,routing]=await Promise.all([
    soft('/rest/v1/ai_os_quick_actions?select=id,label,request,project,template,position&order=position.asc,created_at.asc'),
    soft('/rest/v1/ai_os_project_goals?select=project,goal,due_on,updated_at'),
    soft('/rest/v1/ai_os_goal_milestones?select=id,project,title,due_on,done_at,position&order=position.asc,created_at.asc'),
@@ -698,10 +706,12 @@ async function load(){
    // Memory sections for suggested lines (plan A3).
    soft('/rest/v1/ai_os_learnings?select=id,scope&order=created_at.desc&limit=50'),
    // Rules from the vault (mods item 12): the card that updates CLAUDE.md and the Hermes file.
-   soft('/rest/v1/ai_os_rule_proposals?select=id,targets,snapshot_sha256,state,stale_targets,written_targets,detail,created_at,checked_at,decided_at&order=created_at.desc&limit=5')]);
+   soft('/rest/v1/ai_os_rule_proposals?select=id,targets,snapshot_sha256,state,stale_targets,written_targets,detail,created_at,checked_at,decided_at&order=created_at.desc&limit=5'),
+   soft('/rest/v1/ai_os_tasks?select=id,execution_profile,profile_version,routing_state,routing_result&order=created_at.desc&limit=300')]);
   syncPrefs(layouts,prefs&&(prefs[0]||{}));
   const merge=(rows,extra)=>{const m=new Map((extra||[]).map(x=>[x.id,x]));for(const r of rows)Object.assign(r,m.get(r.id)||{})};
   merge(runs,runExtras);merge(tasks,taskChecks);merge(runs,runChecks);if(learnings)merge(learnings,scopes);
+  merge(tasks,routing);state.routingAvailable=routing!==null;
   Object.assign(state,{quick,goals,milestones,pinned,learnings,vaultTree:vaultTree&&vaultTree[0]||null,automations,facts,decisions,ruleProposals});
   if(view==='audit')loadAudit();
   Object.assign(state,{status,tasks,approvals,runs,bots,assignments,notes,routines,week,summaries,loadedAt:new Date().toISOString(),error:''});
@@ -742,6 +752,9 @@ function info(t){
  }
  // queued
  if(running)return {stage:2,label:'Running',tone:'attention',detail:'Started '+fmtWhen(running.claimed_at)+' on '+(state.status.workers[0]?state.status.workers[0].worker_id:'the Mac')+'.'};
+ if(t.routing_state==='pending'||t.routing_state==='evaluating')return {stage:0,label:'Choosing a model',tone:'attention',needs:true,detail:'The Mac worker is preparing a Jev recommendation. You can choose a model manually.'};
+ if(t.routing_state==='suggested')return {stage:0,label:'Model suggestion ready',tone:'attention',needs:true,detail:'Review the suggested model or choose another. Then approve the new task version.'};
+ if(t.routing_state==='manual'&&!activeApproval(t))return {stage:0,label:'Choose a model',tone:'attention',needs:true,detail:'Jev could not make a usable recommendation. Choose a model, or approve the current '+t.executor+' default.'};
  if(!runnable(t)){const b=botFor(t);
   return b?{stage:0,label:'With '+b.name,tone:'',detail:'Assigned to '+b.name+'. '+b.platform+' is not connected yet, so hand it over yourself and mark it done when it is handled.'}
    :{stage:0,label:'Manual handoff',tone:'',detail:t.executor+' tasks are not run by the Mac worker. Mark it done when it is handled.'}}
@@ -758,6 +771,7 @@ function info(t){
  }
  if(t.requires_approval&&followUpOf(t))return {stage:0,label:'Your correction',tone:'attention',needs:true,
   detail:'You rejected a decision and wrote a correction. This redo runs only if you approve it.'};
+ if(t.routing_state==='accepted')return {stage:0,label:'Needs approval',tone:'attention',needs:true,detail:'The model is selected. Approve this task version to run it once.'};
  if(t.requires_approval&&!t.proposed_by_run)return {stage:0,label:'From n8n',tone:'attention',needs:true,
   detail:'An n8n automation brought this in from outside. It runs only if you approve it; standing rules never apply to outside text.'};
  if(t.requires_approval)return {stage:0,label:'Suggested',tone:'attention',needs:true,
@@ -891,15 +905,16 @@ async function setStatus(t,status,result){
  const rows=await http('/rest/v1/ai_os_tasks?id=eq.'+encodeURIComponent(t.id)+'&version=eq.'+t.version,{method:'PATCH',body,prefer:'return=representation'});
  if(!rows||!rows.length)throw Error('This task changed since the page loaded. It has been refreshed; try again.');
 }
-const approve=(t,hours)=>{const prev=lastApproval(t);
+const approve=(t,hours)=>{if(['pending','evaluating','suggested'].includes(t.routing_state))throw Error('Choose a model before approving this task.');const prev=lastApproval(t);
  return rpc('ai_os_dispatch_approve',{p_task_id:t.id,p_task_version:t.version,p_previous_id:prev?prev.id:null,p_hours:hours})};
 const revoke=(t,a)=>rpc('ai_os_dispatch_revoke',{p_task_id:t.id,p_approval_id:a.id});
 const approveWithUndo=(t,hours,msg)=>async()=>{const a=await approve(t,hours);
  undoToast(msg+' It starts in 10 seconds.',()=>revoke(t,a))};
-async function createTask({title,project,agent,executor,template,request}){
+async function createTask({title,project,agent,executor,template,request,routingRequested=false}){
  const body={id:crypto.randomUUID(),owner_user_id:session.user.id,title:title.trim().slice(0,120),project,agent:agent.trim().slice(0,80),
   executor,request:request.trim().slice(0,8000),context:[]};
  if(template&&WORKER_EXECUTORS.includes(executor))body.template=template;
+ if(body.template&&state.routingAvailable&&routingRequested){body.routing_state='pending';body.requires_approval=true;}
  await http('/rest/v1/ai_os_tasks',{method:'POST',body,prefer:'return=minimal'});
  return body;
 }
@@ -922,7 +937,16 @@ function taskActions(t,{compact=false}={}){
  const i=info(t),out=[];
  const b=(label,cls,fn,ok)=>el('button',{class:cls||'',onclick:e=>act(e.currentTarget,fn,ok)},label);
  if(t.status==='queued'){
-  if(i.needs){out.push(holdButton('Approve for 1 hour','primary',approveWithUndo(t,1,'Approved for one hour.')));
+  if(state.routingAvailable&&runnable(t)&&!runsFor(t).some(r=>r.task_version===t.version&&r.state==='running')){
+   const suggested=ROUTING_PROFILES.find(p=>p.id===t.routing_result?.profile?.id);
+   if(t.routing_state==='suggested'&&suggested)out.push(b('Use '+suggested.model+' · '+suggested.reasoning,'primary',async()=>{await rpc('ai_os_routing_choose',{p_task_id:t.id,p_version:t.version,p_profile:suggested.id});$('dialog').close()},'Model selected. Approve the new task version to run.'));
+   out.push(el('button',{class:'ghost',onclick:()=>{
+    const select=el('select',{'aria-label':'Execution profile'},el('option',{value:''},'Current '+t.executor+' default'),ROUTING_PROFILES.map(p=>el('option',{value:p.id,selected:t.execution_profile===p.id?true:null},p.model+' · '+p.reasoning)));
+    openDialog('Choose model',[el('p',{class:'small'},'Selecting a model creates a new task version. It still needs your approval.'),select,
+     el('button',{class:'primary',onclick:e=>act(e.currentTarget,async()=>{await rpc('ai_os_routing_choose',{p_task_id:t.id,p_version:t.version,p_profile:select.value||null});$('dialog').close()},'Model selected. Approve the task to run.')} ,'Select model')]);
+   }},'Choose model'));
+  }
+  if(i.needs&&!['pending','evaluating','suggested'].includes(t.routing_state)){out.push(holdButton('Approve for 1 hour','primary',approveWithUndo(t,1,'Approved for one hour.')));
    if(!compact)out.push(holdButton('Approve for 24 hours','',approveWithUndo(t,24,'Approved for 24 hours.')))}
   if(i.approval)out.push(b('Revoke approval','',()=>revoke(t,i.approval),'Approval revoked.'));
   if(!runnable(t))out.push(b('Mark done','primary',()=>setStatus(t,'completed'),'Marked done.'));
@@ -972,12 +996,14 @@ function taskDetails(t){
  const dl=el('dl',{class:'scope'});
  const add=(k,v)=>dl.append(el('dt',{},k),el('dd',{},v));
  add('Status',i.label);add('Project',t.project);add('Agent',t.agent+' via '+t.executor);
+ if(t.execution_profile){const p=ROUTING_PROFILES.find(p=>p.id===t.execution_profile);add('Model',p?.model||t.execution_profile);add('Reasoning',p?.reasoning||'Unknown')}
  if(runnable(t)){
   add('Action',(tp.label||t.template)+': '+(tp.instructions||''));
   add('Sources',(t.executor==='ChatGPT'?'Your Obsidian vault. The Mac reads the notes and hands them to ChatGPT, which has no tools of its own.':'Your Obsidian vault through '+(tp.tools||[]).join(' and ')+'.')+' Hidden folders, AI/History and #no-ai notes are skipped.');
   add('Scope','The model only reads. It cannot send, edit, delete or spend. Agent OS saves its answer as a new file in your vault\'s AI folder.');
   add('Output','An answer with quoted sources, saved to AI/History (and AI/Knowledge when its quotes check out), and returned here for your review.');
   if(t.requires_approval&&followUpOf(t))add('Your correction','A redo you asked for when you rejected a decision. It needs your approval to run.');
+  else if(t.routing_state&&t.routing_state!=='off')add('Model selection','You requested model selection. This task needs explicit approval; standing rules do not apply.');
   else if(t.requires_approval)add(t.proposed_by_run?'Suggested':'From n8n',t.proposed_by_run?'By a run that read your vault. It needs your approval each time; standing rules do not apply.'
    :'Brought in by an n8n automation. The outside text is treated as data. It needs your approval each time; standing rules do not apply.');
   if(t.status==='queued')add('Done when',taskChecks(t));
@@ -1087,10 +1113,11 @@ function elliotPanel(){
   ASK_TEMPLATES.map(([k,l])=>el('option',{value:k,selected:store.get('ask','research')===k?true:null},l)));
  tsel.addEventListener('change',()=>store.set('ask',tsel.value));
  const msel=modelSelect('ask-model');
+ const rsel=routingModeSelect('ask-routing');
  // Kept up to date as the template or model changes.
  const fateNote=el('span',{id:'ask-fate'});
- const refate=()=>{fateNote.textContent={held:msel.value+' is on hold',rule:'runs by standing rule',approve:'needs your approval to run'}[askFate(msel.value,tsel.value)]};
- refate();tsel.addEventListener('change',refate);msel.addEventListener('change',refate);msel.addEventListener('model-sync',refate);
+ const refate=()=>{fateNote.textContent=rsel.value==='suggest'?'needs your approval after model selection':{held:msel.value+' is on hold',rule:'runs by standing rule',approve:'needs your approval to run'}[askFate(msel.value,tsel.value)]};
+ refate();rsel.addEventListener('change',refate);tsel.addEventListener('change',refate);msel.addEventListener('change',refate);msel.addEventListener('model-sync',refate);
  const filters=el('div',{class:'thread-filters',role:'group','aria-label':'Show messages for'},['All',...PROJECTS].map(f=>
   el('button',{class:'chip filter'+(f===thread?' active':''),'aria-pressed':String(f===thread),onclick:()=>setFilterTo(f)},f)));
  const send=el('button',{class:'primary circle',id:'send','aria-label':'Send to Elliot',onclick:async e=>{
@@ -1099,9 +1126,9 @@ function elliotPanel(){
   const tpl=tsel.value,btn=e.currentTarget;btn.disabled=true;
   try{
    const tag=tagSel.value;
-   await createTask({title:text.split('\n')[0].slice(0,80),project:tag,agent:'Elliot',executor:msel.value,template:tpl,request:text});
+   await createTask({title:text.split('\n')[0].slice(0,80),project:tag,agent:'Elliot',executor:msel.value,template:tpl,request:text,routingRequested:rsel.value==='suggest'});
    ta.value='';delete drafts.thread;store.set('drafts',drafts);store.del('draft-tag');store.set('last-tag',tag);stickBottom=true;
-   toast({held:'Sent. '+msel.value+' is on hold after a usage limit, so it waits until you resume it in Control.',
+   toast(rsel.value==='suggest'?'Sent for a model recommendation. Review it before approving.':{held:'Sent. '+msel.value+' is on hold after a usage limit, so it waits until you resume it in Control.',
     rule:'Sent. Your '+TEMPLATE_LABEL[tpl]+' rule is on, so the Mac worker will run it.',approve:'Sent. Approve it to let the Mac worker run it.'}[askFate(msel.value,tpl)]);
   }catch(err){if(!err.signedOut)toast('Not sent: '+err.message)}
   finally{btn.disabled=false;await load()}
@@ -1117,6 +1144,8 @@ function elliotPanel(){
      onclick:()=>{document.body.classList.toggle('focus-mode');render();$('focus')&&$('focus').focus()}},icon(focus?'i-close':'i-expand')))),
   el('div',{class:'elliot-model'},el('label',{class:'model-choice',for:'ask-model'},el('span',{class:'small'},'Run Elliot with'),msel),
    el('p',{class:'micro'},'Uses your subscription on the Mac. Choose before sending.')),
+  el('div',{class:'row wrap'},el('label',{class:'model-choice',for:'ask-routing'},el('span',{class:'small'},'Model selection'),rsel)),
+  el('p',{class:'micro'},state.routingAvailable?'Jev suggestions may use either subscription. Review the model before approving.':'Jev is unavailable until the routing update is installed. Manual selection works.'),
   filters,conv,
   el('div',{class:'composer'},ta,el('div',{class:'composer-controls'},el('div',{class:'row'},tagSel,tsel),el('div',{class:'row'},mic,send)),
    el('p',{class:'micro'},tagNote,' · reads only that project\'s notes first · ',fateNote,' · ⌘/Ctrl+Enter sends'),
@@ -1586,6 +1615,7 @@ function approvalCard(t){
   el('dl',{class:'scope essentials'},
    ...row('Will do',(TEMPLATE_LABEL[t.template]||t.template)+': '+(first.length>140?first.slice(0,140)+'…':first)),
    ...row('Who',b?b.name:t.agent+' via '+t.executor),
+   ...(t.execution_profile?[...row('Model',ROUTING_PROFILES.find(p=>p.id===t.execution_profile)?.model||t.execution_profile),...row('Reasoning',ROUTING_PROFILES.find(p=>p.id===t.execution_profile)?.reasoning||'Unknown')]:[]),
    ...row('Project',tagChip(projOf(t))),
    ...row('Writes',tp.writes?'Yes, it can change files':'No. Read-only; the answer is saved to AI/History'),
    ...row('Budget','Up to '+plural(calls,'model call')+(tp.timeout_seconds?', '+tp.timeout_seconds/60+' min':'')),
