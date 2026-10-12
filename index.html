@@ -914,7 +914,8 @@ async function createTask({title,project,agent,executor,template,request,routing
  const body={id:crypto.randomUUID(),owner_user_id:session.user.id,title:title.trim().slice(0,120),project,agent:agent.trim().slice(0,80),
   executor,request:request.trim().slice(0,8000),context:[]};
  if(template&&WORKER_EXECUTORS.includes(executor))body.template=template;
- if(body.template&&state.routingAvailable&&routingRequested){body.routing_state='pending';body.requires_approval=true;}
+ // Approval requirements are server-owned; the pending-route trigger sets them.
+ if(body.template&&state.routingAvailable&&routingRequested)body.routing_state='pending';
  await http('/rest/v1/ai_os_tasks',{method:'POST',body,prefer:'return=minimal'});
  return body;
 }
