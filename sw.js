@@ -1,4 +1,4 @@
-// Agent OS: retired offline shell (agent-os-v2). The new Agent Control app does not use a service worker.
+// Agent OS: retired offline shell (agent-os-v3). The new Agent Control app does not use a service worker.
 // This version takes over from agent-os-v1 at once, deletes every old cache, unregisters itself,
 // and reloads open tabs so phones that had the old app load the new one from the network.
 self.addEventListener('install',()=>self.skipWaiting());
